@@ -425,7 +425,7 @@ window.addReact = async function(msgId, emoji) {
 
   async function send() {
     if (!currentConvId || !currentUser) return;
-    if (!dbOnline) return alert('Server hozircha mavjud emas. Keyinroq urinib ko\'ring.');
+    if (!dbOnline && !currentUser) return alert('Server hozircha mavjud emas. Xabarlaringiz keshlangan holda saqlanadi.');
     const text = input.value.trim();
     const preview = document.getElementById('chatPreview');
     const img = preview.querySelector('img');
