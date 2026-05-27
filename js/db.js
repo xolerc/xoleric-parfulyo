@@ -88,6 +88,10 @@ const DB = {
     await fetch(P(`/conversations/${convId}/messages/${msgId}.json`), { method: 'DELETE' });
   },
 
+  async deleteConversation(convId) {
+    await fetch(P(`/conversations/${convId}.json`), { method: 'DELETE' });
+  },
+
   async addReaction(convId, msgId, reaction) {
     await fetch(P(`/conversations/${convId}/messages/${msgId}/reaction.json`), { method: 'PUT', body: JSON.stringify(reaction) });
   },

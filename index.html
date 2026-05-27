@@ -11,7 +11,6 @@
 </head>
 <body>
 
-<!-- ===== GLOBAL LOADING OVERLAY ===== -->
 <div id="loadingOverlay">
   <div class="loader-ring"></div>
   <div class="loader-text">XOLERIC</div>
@@ -20,22 +19,20 @@
 
 <div class="app">
 
-  <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar">
+  <!-- ===== DESKTOP SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
     <div class="logo">XOLERIC <span>∞</span></div>
     <nav class="nav">
       <button class="nav-btn active" data-tab="home"><span class="nav-glow"></span>Ish maydoni</button>
-      <button class="nav-btn" data-tab="projects"><span class="nav-glow"></span>Loyihalar</button>
-      <button class="nav-btn" data-tab="playme"><span class="nav-glow"></span>Pleer</button>
       <button class="nav-btn" data-tab="chat"><span class="nav-glow"></span>Chat</button>
-      <button class="nav-btn" data-tab="contact"><span class="nav-glow"></span>Aloqa</button>
+      <button class="nav-btn" data-tab="playme"><span class="nav-glow"></span>Pleer</button>
+      <button class="nav-btn" data-tab="projects"><span class="nav-glow"></span>Loyihalar</button>
       <button class="nav-btn" data-tab="settings"><span class="nav-glow"></span>Sozlamalar</button>
     </nav>
   </aside>
 
   <!-- ===== CONTENT ===== -->
   <main class="content">
-
     <header class="topbar">
       <span>XOLERIC <span>∞</span></span>
       <button class="topbar-music" id="musicToggle" title="Musiqa">
@@ -57,75 +54,11 @@
             <div class="hero-actions">
               <button class="glass-btn" onclick="switchTab('projects')">Loyihalar</button>
               <button class="glass-btn glass-outline" onclick="switchTab('chat')">Chat</button>
+              <button class="glass-btn glass-outline" onclick="switchTab('contact')">Aloqa</button>
             </div>
           </div>
           <div class="quote-card" id="quoteCard">
             <div class="quote-text" id="quoteText">Uyg'on, Xoleric...</div>
-          </div>
-        </div>
-
-        <!-- ========== PROJECTS ========== -->
-        <div class="tab-content" id="tab-projects">
-          <div class="page-header">
-            <span class="section-num">01</span>
-            <h2 class="page-title">Loyihalar</h2>
-            <p class="page-desc">GitHub'dagi barcha ochiq manbali loyihalar</p>
-          </div>
-          <div class="projects-loading" id="projectsLoading">
-            <div class="mini-loader"></div>
-            <span>Yuklanmoqda...</span>
-          </div>
-          <div class="projects-grid" id="projectsGrid"></div>
-        </div>
-
-        <!-- ========== PLAYME ========== -->
-        <div class="tab-content" id="tab-playme">
-          <div class="page-header">
-            <span class="section-num">02</span>
-            <h2 class="page-title">Pleer</h2>
-            <p class="page-desc">Video pleer</p>
-          </div>
-          <div class="playme-layout">
-            <div class="playme-player-col">
-              <div class="playme-wrap">
-                <video id="playmeVideo" class="playme-video" playsinline preload="metadata"></video>
-                <div class="playme-loader" id="playmeLoader">
-                  <div class="mini-loader"></div>
-                </div>
-                <div class="playme-controls" id="playmeControls">
-                  <div class="playme-controls-bottom">
-                    <div class="playme-progress" id="playmeProgress">
-                      <div class="playme-progress-fill" id="playmeProgressFill"></div>
-                      <div class="playme-progress-thumb" id="playmeProgressThumb"></div>
-                    </div>
-                    <div class="playme-controls-row">
-                      <div class="playme-controls-left">
-                        <button class="playme-btn playme-btn-play" id="playmePlayBtn"></button>
-                        <button class="playme-btn" id="playmePrevBtn"></button>
-                        <button class="playme-btn" id="playmeNextBtn"></button>
-                        <span class="playme-time" id="playmeCurrent">0:00</span>
-                        <span class="playme-time-sep">/</span>
-                        <span class="playme-time" id="playmeDuration">0:00</span>
-                      </div>
-                      <div class="playme-controls-right">
-                        <div class="playme-volume-wrap">
-                          <button class="playme-btn" id="playmeVolumeIcon"></button>
-                          <input type="range" class="playme-volume" id="playmeVolume" min="0" max="1" step="0.05" value="0.8" />
-                        </div>
-                        <button class="playme-btn" id="playmeFullBtn"></button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="playme-info">
-                <h3 class="playme-title" id="playmeVideoTitle">Video 1</h3>
-              </div>
-            </div>
-            <div class="playme-list-col">
-              <div class="playme-list-header">Pleer ro'yxati</div>
-              <div class="playme-list" id="playmeList"></div>
-            </div>
           </div>
         </div>
 
@@ -186,38 +119,80 @@
           </div>
         </div>
 
-        <!-- Create Conversation Modal -->
-        <div class="modal-overlay" id="createModal" style="display:none">
-            <div class="modal">
-            <div class="modal-header"><h3 id="createModalTitle">Yangi chat</h3></div>
-            <div class="modal-body">
-              <input class="modal-input" id="createConvName" placeholder="Nomi" maxlength="50" />
-              <textarea class="modal-input modal-textarea" id="createConvDesc" placeholder="Tavsif (ixtiyoriy)" rows="2"></textarea>
-              <div class="modal-select-wrap" id="createUserSelectWrap">
-                <select class="modal-input" id="createConvUsers"><option value="">Foydalanuvchini tanlang...</option></select>
+        <!-- ========== PLAYME ========== -->
+        <div class="tab-content" id="tab-playme">
+          <div class="page-header">
+            <span class="section-num">01</span>
+            <h2 class="page-title">Pleer</h2>
+            <p class="page-desc">Video darsliklar to'plami</p>
+          </div>
+          <div class="playme-layout">
+            <div class="playme-player-col">
+              <div class="playme-wrap" id="playmeWrap">
+                <div class="playme-neon-glow"></div>
+                <video id="playmeVideo" class="playme-video" playsinline preload="metadata"></video>
+                <div class="playme-live-badge" id="playmeLiveBadge">Jonli efir</div>
+                <div class="playme-loader" id="playmeLoader">
+                  <div class="mini-loader"></div>
+                </div>
+                <div class="playme-controls" id="playmeControls">
+                  <div class="playme-controls-bottom">
+                    <div class="playme-progress" id="playmeProgress">
+                      <div class="playme-progress-fill" id="playmeProgressFill"></div>
+                      <div class="playme-progress-thumb" id="playmeProgressThumb"></div>
+                    </div>
+                    <div class="playme-controls-row">
+                      <div class="playme-controls-left">
+                        <button class="playme-btn playme-btn-play" id="playmePlayBtn"></button>
+                        <button class="playme-btn" id="playmePrevBtn"></button>
+                        <button class="playme-btn" id="playmeNextBtn"></button>
+                        <span class="playme-time" id="playmeCurrent">0:00</span>
+                        <span class="playme-time-sep">/</span>
+                        <span class="playme-time" id="playmeDuration">0:00</span>
+                      </div>
+                      <div class="playme-controls-right">
+                        <div class="playme-volume-wrap">
+                          <button class="playme-btn" id="playmeVolumeIcon"></button>
+                          <input type="range" class="playme-volume" id="playmeVolume" min="0" max="1" step="0.05" value="0.8" />
+                        </div>
+                        <button class="playme-btn" id="playmeFullBtn"></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <button class="modal-btn" id="createConvSave">Yaratish</button>
-              <button class="modal-btn modal-btn-ghost" onclick="closeModal('createModal')">Bekor qilish</button>
+              <div class="playme-info">
+                <h3 class="playme-title" id="playmeVideoTitle">Video 1</h3>
+              </div>
+            </div>
+            <div class="playme-list-col">
+              <div class="playme-list-header">Pleer ro'yxati</div>
+              <div class="playme-list" id="playmeList"></div>
             </div>
           </div>
         </div>
 
-        <!-- Setup Modal -->
-        <div class="modal-overlay" id="setupModal" style="display:none">
-            <div class="modal">
-            <div class="modal-header"><h3>Xush kelibsiz!</h3></div>
-            <div class="modal-body">
-              <p class="modal-desc">Chatda qatnashish uchun profilingizni yarating</p>
-              <div class="setup-avatar" id="setupAvatar">?</div>
-              <label class="setup-avatar-label">Rasm yuklash<input type="file" accept="image/*" id="setupAvatarInput" /></label>
-              <input class="modal-input" id="setupName" placeholder="Username" maxlength="30" />
-              <textarea class="modal-input modal-textarea" id="setupBio" placeholder="Bio (ixtiyoriy)" maxlength="150" rows="2"></textarea>
-              <button class="modal-btn" id="setupSave">Boshlash</button>
-            </div>
+        <!-- ========== PROJECTS ========== -->
+        <div class="tab-content" id="tab-projects">
+          <div class="page-header">
+            <span class="section-num">02</span>
+            <h2 class="page-title">Loyihalar</h2>
+            <p class="page-desc">GitHub'dagi barcha ochiq manbali loyihalar</p>
           </div>
+          <div class="projects-toolbar">
+            <div class="projects-search-wrap">
+              <input class="projects-search" id="projectsSearch" placeholder="Loyihalarni qidirish..." />
+            </div>
+            <div class="projects-filters" id="projectsFilters"></div>
+          </div>
+          <div class="projects-loading" id="projectsLoading">
+            <div class="mini-loader"></div>
+            <span>Yuklanmoqda...</span>
+          </div>
+          <div class="projects-grid" id="projectsGrid"></div>
         </div>
 
-        <!-- ========== CONTACT ========== -->
+        <!-- ========== CONTACT (embedded in projects) ========== -->
         <div class="tab-content" id="tab-contact">
           <div class="page-header">
             <span class="section-num">03</span>
@@ -251,34 +226,94 @@
             <h2 class="page-title">Sozlamalar</h2>
             <p class="page-desc">Ilova sozlamalari va yuklamalar</p>
           </div>
-          <div class="settings-card">
-            <h3>XOLERIC APK</h3>
-            <p>Android qurilmangizga XOLERIC ilovasini yuklab oling.</p>
+
+          <div class="settings-card settings-apk">
+            <div class="settings-apk-glow"></div>
+            <h3>XOLERIC APK <span class="version-badge">v2.4.0</span></h3>
+            <p>Android qurilmangizga XOLERIC ilovasini yuklab oling. Eng so'nggi versiya bilan barcha imkoniyatlardan foydalaning.</p>
             <div class="settings-actions">
-              <a href="https://github.com/xolerc/xoleric-apk/releases/latest/download/XOLERIC.apk" target="_blank" class="glass-btn">APK yuklash</a>
-              <a href="xoleric.apk" class="glass-btn glass-outline">Eski versiya</a>
+              <a href="https://github.com/xolerc/xoleric-apk/releases/latest/download/XOLERIC.apk" target="_blank" class="glass-btn apk-download-btn">APK yuklash</a>
+              <a href="xoleric.apk" class="glass-btn glass-outline">Eski versiyalar</a>
             </div>
           </div>
+
           <div class="settings-card">
-            <h3>Tema</h3>
-            <p>Sayt ko'rinishini o'zgartirish</p>
-            <div class="theme-grid">
-              <button class="theme-btn active" data-theme="dark">Tungi</button>
-              <button class="theme-btn" data-theme="light">Kunduzgi</button>
-              <button class="theme-btn" data-theme="matrix">Matrix</button>
-              <button class="theme-btn" data-theme="cyber">Cyber</button>
-              <button class="theme-btn" data-theme="neon">Neon</button>
-              <button class="theme-btn" data-theme="minimal">Minimal</button>
+            <h3>Interfeys temasi</h3>
+            <p>Ilova ko'rinishini o'zingizga moslang</p>
+            <div class="theme-grid" id="themeGrid">
+              <button class="theme-btn active" data-theme="dark"><span class="theme-dot" style="background:#4d7cff"></span>Tungi</button>
+              <button class="theme-btn" data-theme="light"><span class="theme-dot" style="background:#6366f1"></span>Kunduzgi</button>
+              <button class="theme-btn" data-theme="matrix"><span class="theme-dot" style="background:#00ff41"></span>Matrix</button>
+              <button class="theme-btn" data-theme="cyber"><span class="theme-dot" style="background:#ff00ff"></span>Cyber</button>
+              <button class="theme-btn" data-theme="neon"><span class="theme-dot" style="background:#00ffff"></span>Neon</button>
+              <button class="theme-btn" data-theme="minimal"><span class="theme-dot" style="background:#fff"></span>Minimal</button>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3>Kengaytirilgan sozlamalar</h3>
+            <div class="settings-item">
+              <span class="settings-item-label">Bildirishnomalar</span>
+              <label class="switch" id="notifToggle">
+                <input type="checkbox" checked /><span class="switch-slider"></span>
+              </label>
+            </div>
+            <div class="settings-item">
+              <span class="settings-item-label">Keshni tozalash</span>
+              <div class="settings-item-right">
+                <span class="settings-cache-size" id="cacheSize">0 MB</span>
+                <button class="settings-cache-btn" id="clearCacheBtn">Tozalash</button>
+              </div>
+            </div>
+            <div class="settings-item">
+              <span class="settings-item-label">Til</span>
+              <select class="settings-select" id="langSelect">
+                <option value="uz">O'zbekcha</option>
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-card settings-dev">
+            <div class="settings-dev-info">
+              <span>Versiya: 2.4.0</span>
+              <span>Litsenziya: MIT</span>
+              <span>&copy; 2026 XOLERIC</span>
             </div>
           </div>
         </div>
 
       </div>
     </section>
+
+    <!-- ===== BOTTOM NAVIGATION BAR ===== -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="bn-btn active" data-tab="home">
+        <span class="bn-icon bn-icon-home"></span>
+        <span class="bn-label">Asosiy</span>
+      </button>
+      <button class="bn-btn" data-tab="chat">
+        <span class="bn-icon bn-icon-chat"></span>
+        <span class="bn-label">Chat</span>
+      </button>
+      <button class="bn-btn" data-tab="playme">
+        <span class="bn-icon bn-icon-play"></span>
+        <span class="bn-label">Pleer</span>
+      </button>
+      <button class="bn-btn" data-tab="projects">
+        <span class="bn-icon bn-icon-folder"></span>
+        <span class="bn-label">Loyihalar</span>
+      </button>
+      <button class="bn-btn" data-tab="settings">
+        <span class="bn-icon bn-icon-settings"></span>
+        <span class="bn-label">Sozlamalar</span>
+      </button>
+    </nav>
+
+    <audio id="bgMusic" src="bg-music.mp3" loop></audio>
   </main>
 </div>
-
-<audio id="bgMusic" src="bg-music.mp3" loop></audio>
 
 <script src="js/db.js"></script>
 <script src="js/main.js"></script>

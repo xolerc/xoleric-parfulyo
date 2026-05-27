@@ -216,8 +216,24 @@ function convItem(c) {
     '<div class="cli-info">' +
       '<span class="cli-name">' + esc(name) + '</span>' +
       '<span class="cli-msg">' + (c.desc ? esc(c.desc.slice(0, 30)) : (c.type === 'channel' ? 'Kanal' : c.type === 'group' ? 'Guruh' : 'Shaxsiy')) + '</span>' +
-    '</div></div>';
+    '</div>' +
+    '<button class="cli-del-btn" onclick="deleteConversation(event, \'' + c.id + '\')" title="O\'chirish"></button></div>';
 }
+
+window.deleteConversation = async function(e, convId) {
+  e.stopPropagation();
+  if (!confirm("Konversiyani o'chirishni xohlaysizmi?")) return;
+  await DB.deleteConversation(convId);
+  if (currentConvId === convId) {
+    currentConvId = null;
+    document.getElementById('chatMessages').innerHTML = '<div class="chat-empty">Konversiyani tanlang</div>';
+    document.getElementById('chatInputArea').style.display = 'none';
+    document.getElementById('chatJoinArea').style.display = 'none';
+    document.getElementById('chatHeaderName').textContent = 'Xoleric Chat';
+    document.getElementById('chatHeaderMeta').textContent = 'super chat';
+  }
+  await loadConversations();
+};
 
 // ===== OPEN CONVERSATION =====
 async function openConversation(convId) {

@@ -44,7 +44,7 @@ const MOTIVATION = [
   setInterval(sendQuote, 5 * 60 * 60 * 1000);
 })();
 
-const TABS = ['home','projects','playme','chat','contact','settings'];
+const TABS = ['home','chat','playme','projects','contact','settings'];
 let currentTab = 0;
 let tabStack = [0];
 
@@ -54,6 +54,7 @@ function navigateTo(idx, record) {
   const track = document.querySelector('.tabs-track');
   if (track) track.style.transform = 'translateX(-' + (idx * 100) + '%)';
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === TABS[idx]));
+  document.querySelectorAll('.bn-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === TABS[idx]));
   if (record) {
     tabStack.push(idx);
     history.pushState({ tab: idx }, '');
@@ -65,11 +66,11 @@ function switchTab(name) {
   if (idx >= 0) navigateTo(idx, true);
 }
 
-document.querySelectorAll('.nav-btn').forEach(btn => {
+document.querySelectorAll('.nav-btn, .bn-btn').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
-// Touch swipe
+// Touch swipe (desktop — tab-area only, not bottom nav)
 (function() {
   const ws = document.querySelector('.workspace');
   if (!ws) return;
@@ -109,6 +110,7 @@ window.addEventListener('load', () => {
   const track = document.querySelector('.tabs-track');
   if (track) track.style.transform = 'translateX(-' + (start * 100) + '%)';
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === TABS[start]));
+  document.querySelectorAll('.bn-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === TABS[start]));
 });
 
 // Chat toggle
@@ -230,3 +232,44 @@ window.closeModal = function(id) {
   const m = document.getElementById(id);
   if (m) m.style.display = 'none';
 };
+
+// ===== SETTINGS CONTROLS =====
+(function() {
+  const notifToggle = document.getElementById('notifToggle');
+  if (notifToggle) {
+    const saved = localStorage.getItem('xolerc_notif');
+    if (saved === 'off') notifToggle.querySelector('input').checked = false;
+    notifToggle.addEventListener('change', function() {
+      const on = this.querySelector('input').checked;
+      localStorage.setItem('xolerc_notif', on ? 'on' : 'off');
+    });
+  }
+
+  const clearBtn = document.getElementById('clearCacheBtn');
+  if (clearBtn) {
+    function updateCacheSize() {
+      let total = 0;
+      for (const key in localStorage) {
+        const k = localStorage.getItem(key);
+        if (k) total += k.length * 2;
+      }
+      const size = total > 1048576 ? (total / 1048576).toFixed(1) + ' MB' : total > 1024 ? Math.round(total / 1024) + ' KB' : total + ' B';
+      document.getElementById('cacheSize').textContent = size;
+    }
+    updateCacheSize();
+    clearBtn.addEventListener('click', () => {
+      const keys = Object.keys(localStorage).filter(k => !k.startsWith('xolerc_'));
+      keys.forEach(k => localStorage.removeItem(k));
+      updateCacheSize();
+    });
+  }
+
+  const langSelect = document.getElementById('langSelect');
+  if (langSelect) {
+    const saved = localStorage.getItem('xolerc_lang') || 'uz';
+    langSelect.value = saved;
+    langSelect.addEventListener('change', function() {
+      localStorage.setItem('xolerc_lang', this.value);
+    });
+  }
+})();

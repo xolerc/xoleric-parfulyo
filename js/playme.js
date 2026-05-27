@@ -30,10 +30,12 @@ const volumeEl = document.getElementById('playmeVolume');
 const volumeIcon = document.getElementById('playmeVolumeIcon');
 const loader = document.getElementById('playmeLoader');
 const controls = document.getElementById('playmeControls');
+const wrap = document.getElementById('playmeWrap');
 
 let currentIndex = 0;
 let progressDragging = false;
 let controlsTimer = null;
+let durations = {};
 
 function fmt(s) {
   if (!s || !isFinite(s)) return '0:00';
@@ -61,14 +63,23 @@ function playVideo(index) {
   loader.classList.remove('hidden');
   video.play().catch(() => {});
   titleEl.textContent = v.title;
+  wrap.classList.remove('playing');
   renderList();
 }
 
 function renderList() {
-  list.innerHTML = VIDEOS.map((v, i) => '<div class="playme-item' + (i === currentIndex ? ' active' : '') + '" data-index="' + i + '">' +
-    '<span class="playme-item-num">' + String(i + 1).padStart(2, '0') + '</span>' +
-    '<div class="playme-item-body"><span class="playme-item-title">' + v.title + '</span></div></div>'
-  ).join('');
+  list.innerHTML = VIDEOS.map((v, i) => {
+    const dur = durations[i] ? fmt(durations[i]) : '';
+    const thumb = v.thumb || '';
+    return '<div class="playme-item' + (i === currentIndex ? ' active' : '') + '" data-index="' + i + '">' +
+      '<div class="playme-item-thumb">' +
+      (thumb ? '<img src="' + thumb + '" alt="" loading="lazy" />' : '<span class="playme-item-num">' + String(i + 1).padStart(2, '0') + '</span>') +
+      '</div>' +
+      '<div class="playme-item-body">' +
+      '<span class="playme-item-title">' + v.title + '</span>' +
+      (dur ? '<div class="playme-item-duration">' + dur + '</div>' : '') +
+      '</div></div>';
+  }).join('');
   list.querySelectorAll('.playme-item').forEach(item => {
     item.addEventListener('click', () => playVideo(parseInt(item.dataset.index)));
   });
@@ -95,9 +106,20 @@ fullBtn.addEventListener('click', () => {
   else video.requestFullscreen();
 });
 
-video.addEventListener('play', () => { playBtn.classList.add('playing'); showControls(); });
-video.addEventListener('pause', () => { playBtn.classList.remove('playing'); controls.classList.add('visible'); });
-video.addEventListener('ended', () => { playVideo((currentIndex + 1) % VIDEOS.length); });
+video.addEventListener('play', () => {
+  playBtn.classList.add('playing');
+  wrap.classList.add('playing');
+  showControls();
+});
+video.addEventListener('pause', () => {
+  playBtn.classList.remove('playing');
+  wrap.classList.remove('playing');
+  controls.classList.add('visible');
+});
+video.addEventListener('ended', () => {
+  wrap.classList.remove('playing');
+  playVideo((currentIndex + 1) % VIDEOS.length);
+});
 
 video.addEventListener('timeupdate', () => {
   currentEl.textContent = fmt(video.currentTime);
@@ -110,6 +132,10 @@ video.addEventListener('timeupdate', () => {
 video.addEventListener('loadedmetadata', () => {
   durEl.textContent = fmt(video.duration);
   loader.classList.add('hidden');
+  if (!durations[currentIndex]) {
+    durations[currentIndex] = video.duration;
+    renderList();
+  }
 });
 
 video.addEventListener('canplay', () => {
@@ -156,6 +182,19 @@ volumeIcon.addEventListener('click', () => {
     volumeEl.value = prev;
   }
   volumeIcon.classList.toggle('muted', video.volume === 0);
+});
+
+// Preload durations for all videos
+VIDEOS.forEach((v, i) => {
+  const tmp = document.createElement('video');
+  tmp.preload = 'metadata';
+  tmp.src = v.file;
+  tmp.addEventListener('loadedmetadata', () => {
+    durations[i] = tmp.duration;
+    renderList();
+    tmp.remove();
+  });
+  tmp.addEventListener('error', () => tmp.remove());
 });
 
 renderList();
