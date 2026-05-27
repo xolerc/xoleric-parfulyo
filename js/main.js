@@ -180,6 +180,61 @@ document.addEventListener('click', e => {
   });
 })();
 
+// ===== CLOCK WIDGET =====
+(function() {
+  const timeEl = document.getElementById('clockTime');
+  const dateEl = document.getElementById('clockDate');
+  const monthEl = document.getElementById('calMonth');
+  const dayEl = document.getElementById('calDay');
+  const weekdayEl = document.getElementById('calWeekday');
+  const yearEl = document.getElementById('calYear');
+  if (!timeEl) return;
+  const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  const weekdays = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+  function update() {
+    const d = new Date();
+    timeEl.textContent = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+    if (dateEl) dateEl.textContent = d.toLocaleDateString('uz-UZ', { day:'numeric', month:'long' });
+    if (monthEl) monthEl.textContent = months[d.getMonth()];
+    if (dayEl) dayEl.textContent = d.getDate();
+    if (weekdayEl) weekdayEl.textContent = weekdays[d.getDay()];
+    if (yearEl) yearEl.textContent = d.getFullYear();
+  }
+  update();
+  setInterval(update, 1000);
+})();
+
+// ===== CLOCK & CALENDAR =====
+(function() {
+  const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  const weekdays = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const timeEl = document.getElementById('clockTime');
+    if (timeEl) timeEl.textContent = h + ':' + m;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  const now = new Date();
+  const dayEl = document.getElementById('calDay');
+  const monthEl = document.getElementById('calMonth');
+  const weekdayEl = document.getElementById('calWeekday');
+  const yearEl = document.getElementById('calYear');
+  if (dayEl) dayEl.textContent = now.getDate();
+  if (monthEl) monthEl.textContent = months[now.getMonth()];
+  if (weekdayEl) weekdayEl.textContent = weekdays[now.getDay()];
+  if (yearEl) yearEl.textContent = now.getFullYear();
+
+  const dateEl = document.getElementById('clockDate');
+  if (dateEl) {
+    dateEl.textContent = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+  }
+})();
+
 // ===== MOTIVATION QUOTES ROTATION =====
 (function() {
   const el = document.getElementById('quoteText');

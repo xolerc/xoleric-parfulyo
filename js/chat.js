@@ -7,14 +7,36 @@ let currentConvId = null;
 let onlineUsers = {};
 let initResolved = false;
 
+let dbOnline = false;
+
 async function dbPing() {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 4000);
     await fetch(DB_URL + '/.json?shallow=true', { signal: ctrl.signal, cache: 'no-store' });
     clearTimeout(t);
+    dbOnline = true;
     return true;
-  } catch { return false; }
+  } catch {
+    dbOnline = false;
+    return false;
+  }
+}
+
+function showServerOffline() {
+  const msgs = document.getElementById('chatMessages');
+  if (msgs) {
+    msgs.innerHTML = '<div class="chat-empty" style="padding:60px 20px">' +
+      '<div style="font-size:32px;margin-bottom:12px;opacity:0.2">!</div>' +
+      '<div style="font-size:14px;font-weight:600;margin-bottom:6px">Server hozircha mavjud emas</div>' +
+      '<div style="font-size:11px;color:var(--text-muted);margin-bottom:16px">Keyinroq qayta urinib ko\'ring</div>' +
+      '<button class="glass-btn" onclick="location.reload()">Qayta ulanish</button></div>';
+  }
+  document.getElementById('chatInputArea').style.display = 'none';
+  document.getElementById('chatJoinArea').style.display = 'none';
+  document.getElementById('sidebarChats').innerHTML = '<div class="conv-empty">Server bilan bog\'lanish yo\'q</div>';
+  document.getElementById('chatHeaderName').textContent = 'Xoleric Chat';
+  document.getElementById('chatHeaderMeta').textContent = 'offline';
 }
 
 function hideLoading() {
@@ -112,23 +134,27 @@ document.getElementById('setupSave').addEventListener('click', async () => {
   const avatar = document.getElementById('setupAvatar').textContent === '?' ? '' : document.getElementById('setupAvatar').textContent;
   const bio = document.getElementById('setupBio').value.trim();
   if (currentUser) {
-    await DB.updateUser(currentUser.id, { username: name, bio, avatar });
+    try { await DB.updateUser(currentUser.id, { username: name, bio, avatar }); } catch {}
     currentUser = { ...currentUser, username: name, bio, avatar };
     localStorage.setItem(CACHE_KEY, JSON.stringify(currentUser));
     document.getElementById('setupModal').style.display = 'none';
     updateSidebarUser(currentUser);
     return;
   }
-  const exists = await DB.usernameExists(name);
-  if (exists) return alert('Bu username band. Boshqasini tanlang.');
-  const user = await DB.createUser({ username: name, bio, avatar });
-  currentUser = user;
-  localStorage.setItem('xolerc_uid', user.id);
-  localStorage.setItem(CACHE_KEY, JSON.stringify(user));
-  document.getElementById('setupModal').style.display = 'none';
-  updateSidebarUser(user);
-  await DB.migrateOldMessages();
-  await loadConversations();
+  try {
+    const exists = await DB.usernameExists(name);
+    if (exists) return alert('Bu username band. Boshqasini tanlang.');
+    const user = await DB.createUser({ username: name, bio, avatar });
+    currentUser = user;
+    localStorage.setItem('xolerc_uid', user.id);
+    localStorage.setItem(CACHE_KEY, JSON.stringify(user));
+    document.getElementById('setupModal').style.display = 'none';
+    updateSidebarUser(user);
+    await DB.migrateOldMessages();
+    await loadConversations();
+  } catch {
+    alert('Serverga ulanishda xatolik. Keyinroq qayta urinib ko\'ring.');
+  }
 });
 
 document.getElementById('editProfileBtn').addEventListener('click', () => {
@@ -175,8 +201,12 @@ function updateSidebarUser(user) {
 
 // ===== CONVERSATIONS =====
 async function loadConversations() {
-  const convs = await DB.getConversations();
-  renderConversationList(convs);
+  try {
+    const convs = await DB.getConversations();
+    renderConversationList(convs);
+  } catch {
+    renderConversationList([]);
+  }
 }
 
 function renderConversationList(convs) {
@@ -204,7 +234,8 @@ function renderConversationList(convs) {
   }
 
   if (!html) {
-    html = '<div class="conv-empty">Hali hech qanday chat mavjud emas.<br>Yangi kanal yoki guruh yarating.</div>';
+    html = '<div class="conv-empty">Hali hech qanday chat mavjud emas.<br>Yangi kanal yoki guruh yarating.</div>' +
+      '<div style="text-align:center;padding:8px"><button class="glass-btn" onclick="loadConversations()" style="font-size:11px;padding:6px 14px">Qayta ulanish</button></div>';
   }
 
   container.innerHTML = html;
@@ -228,7 +259,7 @@ function convItem(c) {
 window.deleteConversation = async function(e, convId) {
   e.stopPropagation();
   if (!confirm("Konversiyani o'chirishni xohlaysizmi?")) return;
-  await DB.deleteConversation(convId);
+  try { await DB.deleteConversation(convId); } catch {}
   if (currentConvId === convId) {
     currentConvId = null;
     document.getElementById('chatMessages').innerHTML = '<div class="chat-empty">Konversiyani tanlang</div>';
@@ -394,18 +425,23 @@ window.addReact = async function(msgId, emoji) {
 
   async function send() {
     if (!currentConvId || !currentUser) return;
+    if (!dbOnline) return alert('Server hozircha mavjud emas. Keyinroq urinib ko\'ring.');
     const text = input.value.trim();
     const preview = document.getElementById('chatPreview');
     const img = preview.querySelector('img');
     const media = preview.style.display !== 'none' && img ? img.src : '';
     if (!text && !media) return;
-    await DB.sendMessage({
-      convId: currentConvId, fromId: currentUser.id, fromName: currentUser.username,
-      fromAvatar: currentUser.avatar || '', text, media,
-    });
-    input.value = ''; input.style.height = 'auto';
-    preview.style.display = 'none';
-    if (img) img.src = '';
+    try {
+      await DB.sendMessage({
+        convId: currentConvId, fromId: currentUser.id, fromName: currentUser.username,
+        fromAvatar: currentUser.avatar || '', text, media,
+      });
+      input.value = ''; input.style.height = 'auto';
+      preview.style.display = 'none';
+      if (img) img.src = '';
+    } catch {
+      alert('Xabar yuborilmadi. Server bilan bog\'lanish yo\'q.');
+    }
   }
 
   sendBtn.addEventListener('click', send);
