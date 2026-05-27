@@ -82,22 +82,27 @@ async function ensureUser() {
   }, 6000);
 
   (async () => {
-    await dbPing();
-    const user = await ensureUser();
-    clearTimeout(safetyTimer);
+    try {
+      await dbPing();
+      const user = await ensureUser();
+      clearTimeout(safetyTimer);
 
-    if (user) {
-      document.getElementById('setupModal').style.display = 'none';
-      updateSidebarUser(user);
-      await loadConversations();
-      const items = document.querySelectorAll('.chat-list-item');
-      if (items.length > 0) items[0].click();
-    } else {
-      document.getElementById('setupModal').style.display = 'flex';
+      if (user) {
+        document.getElementById('setupModal').style.display = 'none';
+        updateSidebarUser(user);
+        await loadConversations();
+        const items = document.querySelectorAll('.chat-list-item');
+        if (items.length > 0) items[0].click();
+      } else {
+        document.getElementById('setupModal').style.display = 'flex';
+      }
+    } catch (e) {
+      if (e && e.name !== 'AbortError') console.error('Init error:', e);
+    } finally {
+      hideLoading();
+      hideChatLoader();
+      initResolved = true;
     }
-    hideLoading();
-    hideChatLoader();
-    initResolved = true;
   })();
 })();
 

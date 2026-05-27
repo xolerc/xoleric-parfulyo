@@ -113,6 +113,15 @@ window.addEventListener('load', () => {
   document.querySelectorAll('.bn-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === TABS[start]));
 });
 
+// Force-hide loading overlay after 10s (safety net)
+setTimeout(() => {
+  const o = document.getElementById('loadingOverlay');
+  if (o && !o.classList.contains('fade-out')) {
+    o.classList.add('fade-out');
+    setTimeout(() => { o.style.display = 'none'; }, 500);
+  }
+}, 10000);
+
 // Chat toggle
 document.addEventListener('click', e => {
   const toggle = e.target.closest('#chatToggle');
