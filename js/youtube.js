@@ -1,7 +1,7 @@
 (function () {
   'use strict'
   var KEY = 'AIzaSyAwpEdIA_5_1aDPoMP0Q_ROE_zTrhoxwKs'
-  var TTL = 30 * 60 * 1000
+  var TTL = 6 * 60 * 60 * 1000
   var ctrl = null, st = null, cat = 'all', playing = null, chanFilter = null
   var ytPlayer = null, manualPause = false, playerReady = false, YT_API_LOADED = false
   var retryTimer = null, pageToken = null, allVideos = [], loadMtx = false
@@ -32,13 +32,17 @@
     ctrl = new AbortController()
     var r = await fetch(url(path, p), { signal: ctrl.signal })
     var d = await r.json()
-    if (d.error) throw new Error(d.error.message || 'API xatosi')
+    if (d.error) {
+      if (d.error.message && d.error.message.indexOf('quota') >= 0) throw new Error('QUOTA_EXCEEDED')
+      throw new Error(d.error.message || 'API xatosi')
+    }
     if (!r.ok) throw new Error('HTTP ' + r.status)
     return d
   }
 
   function ck(q) { return 'vp_' + q.toLowerCase().replace(/[\s_]+/g, '_') }
   function gc(q) { try { var r = localStorage.getItem(ck(q)); if (!r) return null; var c = JSON.parse(r); if (Date.now() - c.ts < TTL) return c.d } catch (e) {}; return null }
+  function gcStale(q) { try { var r = localStorage.getItem(ck(q)); if (!r) return null; return JSON.parse(r).d } catch (e) {}; return null }
   function sc(q, d) { localStorage.setItem(ck(q), JSON.stringify({ ts: Date.now(), d: d })) }
 
   function fmt(n) { n = parseInt(n, 10) || 0; if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'; if (n >= 1000) return (n / 1000).toFixed(1) + 'K'; return '' + n }
@@ -408,8 +412,13 @@
       if (v && v.length) { allVideos = v; render(v); if (pageToken) show(moreEl) } else { hide(loadEl); show(noneEl); var g = $('vpGrid'); if (g) g.innerHTML = '' }
     } catch (e) {
       if (e.name === 'AbortError') { hideSkel(); return }
-      console.error(e); hide(loadEl); show(errEl)
-      if (descEl) descEl.textContent = e.message || 'Xatolik'
+      console.error(e); hide(loadEl)
+      /* Try stale cache on error */
+      var staleKey = id === 'all' ? 'trending_' : (ch ? ch.q : null)
+      var stale = staleKey ? gcStale(staleKey) : null
+      if (stale && stale.length) { allVideos = stale; render(stale); if (descEl) descEl.textContent = 'Kesh ma\'lumotlari ko\'rsatilmoqda (yangilash imkonsiz)'; return }
+      show(errEl)
+      if (descEl) descEl.textContent = e.message === 'QUOTA_EXCEEDED' ? 'Kunlik limit tugadi. Ertaga qayta urinib ko\'ring.' : (e.message || 'Xatolik')
       var g = $('vpGrid'); if (g) g.innerHTML = ''
     }
     hideSkel(); hide(loadEl)
