@@ -4,6 +4,8 @@
   var CACHE_KEY = 'xolerc_user'
   var currentUser = null, msgUnsub = null, roomsUnsub = null, usersUnsub = null, typingUnsub = null, currentRoomId = 'main', allRooms = [], allUsers = [], typingTimer = null
   var unreadCount = 0, lastKnownCount = 0, notifSoundEnabled = localStorage.getItem('xolerc_notif_sound') !== 'off', dndMode = localStorage.getItem('xolerc_dnd') === 'on', notifSoundCtx = null
+  var replyTo = null, oldestTime = null, loadingMore = false, pinnedMsgs = [], allMsgsCache = []
+
   window.setNotifSound = function (on) { notifSoundEnabled = on }
 
   function playNotifSound() {
@@ -20,12 +22,8 @@
     } catch (e) {}
   }
 
-  function updateTitleBadge() {
-    document.title = unreadCount > 0 ? '(' + unreadCount + ') XOLERIC' : 'XOLERIC \u221E'
-  }
-
+  function updateTitleBadge() { document.title = unreadCount > 0 ? '(' + unreadCount + ') XOLERIC' : 'XOLERIC \u221E' }
   function clearUnread() { if (unreadCount > 0) { unreadCount = 0; updateTitleBadge() } }
-
   function $(id) { return document.getElementById(id) }
 
   var toastTimer = null
@@ -117,20 +115,67 @@
     if (curTab === 1) clearUnread()
   })
 
+  function getRoomOtherUser() {
+    if (currentRoomId === 'main') return null
+    for (var i = 0; i < allRooms.length; i++) {
+      if (allRooms[i].id === currentRoomId) {
+        if (allRooms[i].otherUserId && allUsers.length) {
+          for (var j = 0; j < allUsers.length; j++) { if (allUsers[j].id === allRooms[i].otherUserId) return allUsers[j] }
+        }
+        return null
+      }
+    }
+    return null
+  }
+
   function openRoom(roomId) {
-    cleanupMessages(); lastKnownCount = 0; currentRoomId = roomId
+    cleanupMessages(); lastKnownCount = 0; currentRoomId = roomId; replyTo = null; oldestTime = null; allMsgsCache = []; pinnedMsgs = []
     var ne = $('chatRoomName'), se = $('chatRoomStatus'), ae = $('chatRoomAvatar'), ja = $('chatJoinArea'), ia = $('chatInputArea'), me = $('chatMessages'), bb = $('chatBackBtn'), sw = $('chatSearchWrap')
-    if (roomId === 'main') { if (ne) ne.textContent = 'Umumiy Chat'; if (se) se.textContent = 'online'; if (ae) ae.textContent = '∞' }
-    else { var room = null; for (var i = 0; i < allRooms.length; i++) { if (allRooms[i].id === roomId) { room = allRooms[i]; break } }; if (ne) ne.textContent = (room && room.name) || roomId; if (se) se.textContent = room ? 'by ' + room.creatorName : ''; if (ae) ae.textContent = room ? (room.name[0] || '#').toUpperCase() : '#' }
+    if (roomId === 'main') { if (ne) ne.textContent = 'Umumiy Chat'; if (se) se.textContent = 'online \u00B7 ' + allUsers.length + ' foydalanuvchi'; if (ae) ae.textContent = '\u221E' }
+    else {
+      var room = null; for (var i = 0; i < allRooms.length; i++) { if (allRooms[i].id === roomId) { room = allRooms[i]; break } }
+      if (ne) ne.textContent = (room && room.name) || roomId
+      var other = null
+      if (room && room.otherUserId && allUsers.length) { for (var j = 0; j < allUsers.length; j++) { if (allUsers[j].id === room.otherUserId) { other = allUsers[j]; break } } }
+      if (se) se.textContent = other ? (other.online ? 'online' : 'offline') : (room ? 'by ' + room.creatorName : '')
+      if (ae) ae.textContent = room ? (room.name[0] || '#').toUpperCase() : '#'
+    }
     if (ja) ja.style.display = 'none'; if (ia) ia.style.display = 'flex'; if (bb) bb.style.display = ''; if (sw) sw.style.display = 'block'
     showRoomView()
     if (me) me.innerHTML = '<div class="chat-loading" data-i18n="chat.loading">Xabarlar yuklanmoqda...</div>'
     msgUnsub = DB.subscribeMessages(roomId, function (msgs) { renderMessages(msgs) })
     setupTypingSubscription(roomId)
     if (typingTimer) { clearTimeout(typingTimer); typingTimer = null }
+    cancelReply()
   }
 
   function cleanupMessages() { if (msgUnsub) { msgUnsub(); msgUnsub = null }; if (typingUnsub) { typingUnsub(); typingUnsub = null }; var sw = $('chatSearchWrap'); if (sw) sw.style.display = 'none' }
+
+  function loadMoreMessages() {
+    if (loadingMore || !oldestTime) return
+    loadingMore = true
+    var btn = document.getElementById('chatLoadMoreBtn')
+    if (btn) { btn.textContent = 'Yuklanmoqda...'; btn.disabled = true }
+    DB.subscribeMessagesBefore(currentRoomId, oldestTime, 50, function (msgs) {
+      loadingMore = false
+      if (btn) { btn.style.display = msgs.length ? 'block' : 'none'; btn.textContent = "Ko'proq yuklash"; btn.disabled = false }
+      if (!msgs.length) return
+      oldestTime = msgs[0].time
+      allMsgsCache = msgs.concat(allMsgsCache)
+      var container = $('chatMessages')
+      if (!container) return
+      var scrollH = container.scrollHeight
+      var prependHtml = ''
+      for (var i = 0; i < msgs.length; i++) {
+        var prev = i > 0 ? msgs[i - 1] : null
+        var showDate = !prev || !prev.time || !msgs[i].time || new Date(prev.time).toDateString() !== new Date(msgs[i].time).toDateString()
+        if (showDate) prependHtml += '<div class="date-sep"><span>' + getDateLabel(msgs[i].time) + '</span></div>'
+        prependHtml += renderMessage(msgs[i])
+      }
+      container.insertAdjacentHTML('afterbegin', prependHtml)
+      container.scrollTop = container.scrollHeight - scrollH
+    })
+  }
 
   function renderMessages(msgs) {
     var container = $('chatMessages')
@@ -142,25 +187,38 @@
         var curTab = window.getCurrentTab ? window.getCurrentTab() : 0
         var isFocused = document.hasFocus()
         if (curTab !== 1 || !isFocused) {
-          unreadCount++
-          updateTitleBadge()
-          playNotifSound()
+          unreadCount++; updateTitleBadge(); playNotifSound()
           if (!isFocused && Notification.permission === 'granted' && localStorage.getItem('xolerc_notif') !== 'off') {
             try { new Notification('XOLERIC Chat', { body: (latest.fromName || 'Someone') + ': ' + (latest.text || '(media)'), icon: 'icon.png' }) } catch (e) {}
           }
         }
       }
     }
-    lastKnownCount = msgs.length
+    lastKnownCount = msgs.length; allMsgsCache = msgs
     if (!msgs.length) { container.innerHTML = '<div class="chat-empty" style="padding:60px 20px;text-align:center;color:var(--text-muted);font-size:13px">📭 Xabarlar yo\'q. Birinchi bo\'lib yozing!</div>'; return }
     var html = ''
+    html += '<div style="text-align:center;padding:8px 0"><button id="chatLoadMoreBtn" class="chat-load-more-btn">Ko\'proq yuklash</button></div>'
+    pinnedMsgs = msgs.filter(function (m) { return m.pinned })
+    for (var p = 0; p < pinnedMsgs.length; p++) {
+      var pm = pinnedMsgs[p]
+      html += '<div class="pinned-header">📌 Pin qilingan</div>' + renderMessage(pm)
+    }
+    if (pinnedMsgs.length) html += '<div style="height:4px"></div>'
+    oldestTime = msgs[0] ? msgs[0].time : null
+    var lastAuthor = null, lastTime = null
     for (var i = 0; i < msgs.length; i++) {
+      var m = msgs[i]
+      if (m.pinned) continue
       var prev = i > 0 ? msgs[i - 1] : null
-      var showDate = i === 0 || !prev || !prev.time || !msgs[i].time || new Date(prev.time).toDateString() !== new Date(msgs[i].time).toDateString()
-      if (showDate) html += '<div class="date-sep"><span>' + getDateLabel(msgs[i].time) + '</span></div>'
-      html += renderMessage(msgs[i])
+      var showDate = i === 0 || !prev || !prev.time || !m.time || new Date(prev.time).toDateString() !== new Date(m.time).toDateString()
+      if (showDate) html += '<div class="date-sep"><span>' + getDateLabel(m.time) + '</span></div>'
+      var sameAuthor = lastAuthor && m.fromId === lastAuthor && lastTime && (m.time - lastTime) < 60000
+      html += renderMessage(m, sameAuthor)
+      lastAuthor = m.fromId; lastTime = m.time
     }
     container.innerHTML = html
+    var btn = document.getElementById('chatLoadMoreBtn')
+    if (btn) btn.addEventListener('click', loadMoreMessages)
     requestAnimationFrame(function () { container.scrollTop = container.scrollHeight })
   }
 
@@ -170,15 +228,8 @@
       var el = $('chatTyping'), ne = $('chatTypingName')
       if (!el || !ne) return
       var names = []
-      for (var k in typers) {
-        if (k !== currentUser.id) {
-          var n = typers[k].name || 'Someone'
-          if (n.length > 15) n = n.slice(0, 15) + '...'
-          names.push(n)
-        }
-      }
-      if (names.length) { ne.textContent = names.join(', ') + ' '; el.classList.add('show') }
-      else el.classList.remove('show')
+      for (var k in typers) { if (k !== (currentUser ? currentUser.id : '')) { var n = typers[k].name || 'Someone'; if (n.length > 15) n = n.slice(0, 15) + '...'; names.push(n) } }
+      if (names.length) { ne.textContent = names.join(', ') + ' '; el.classList.add('show') } else el.classList.remove('show')
     })
   }
 
@@ -191,7 +242,10 @@
     return d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })
   }
 
-  function renderMessage(m) {
+  function renderMessage(m, grouped) {
+    if (m.deleted) {
+      return '<div class="msg-wrapper msg-deleted" data-id="' + escId(m.id) + '"><div class="msg-body"><div class="msg-bubble msg-bubble-del"><span style="font-style:italic;font-size:12px;opacity:0.5">Xabar o\'chirildi</span></div></div></div>'
+    }
     var isOwn = currentUser && m.fromId === currentUser.id
     var cls = isOwn ? 'msg own' : 'msg other'
     var avatar = m.fromAvatar && m.fromAvatar !== '?' ? m.fromAvatar : null
@@ -199,22 +253,27 @@
     var fromId = m.fromId || ''
     var canClick = !isOwn && !!fromId
     var bodyHtml = ''
+    if (m.replyTo) bodyHtml += '<div class="msg-reply-bar">↪ ' + window.escHtml(m.replyToName || 'Xabar') + ': ' + window.escHtml((m.replyText || '').slice(0, 50)) + '</div>'
     if (m.text) bodyHtml += '<div class="msg-text">' + linkify(window.escHtml(m.text)) + '</div>'
     if (m.media) {
       if (m.media.indexOf('data:audio') === 0) bodyHtml += '<div class="msg-audio"><button class="audio-play-btn" onclick="window.playAudio(\'' + escId(m.id) + '\',\'' + escId(currentRoomId) + '\',this)">▶</button><span class="audio-duration">Ovozli xabar</span></div>'
       else if (m.media.indexOf('data:image') === 0 || m.media.indexOf('blob:') === 0 || m.media.indexOf('http') === 0) bodyHtml += '<div class="msg-media"><img src="' + window.escHtml(m.media) + '" loading="lazy" onclick="window.openImageViewer(\'' + window.escHtml(m.media) + '\')" /></div>'
     }
-    if (m.replyTo) bodyHtml = '<div class="msg-reply-bar">↪ ' + window.escHtml(m.replyToName || 'Xabar') + '</div>' + bodyHtml
     if (m.edited) bodyHtml += '<span class="edited-badge">tahrirlangan</span>'
     var reactHtml = ''
     for (var r = 0; r < REACTIONS.length; r++) reactHtml += '<button class="react-emoji" onclick="window.addReact(\'' + escId(m.id) + '\',\'' + escId(currentRoomId) + '\',\'' + REACTIONS[r] + '\')">' + REACTIONS[r] + '</button>'
-    return '<div class="' + cls + ' msg-wrapper" data-id="' + escId(m.id) + '">' +
-      '<div class="msg-avatar' + (canClick ? ' clickable' : '') + '" style="' + (avatar ? 'background-image:' + cssUrl(avatar) + ';background-size:cover' : '') + '" onclick="' + (canClick ? 'window.showUserProfile(\'' + escId(fromId) + '\',event)' : '') + '">' + (avatar ? '' : (m.fromName ? window.escHtml(m.fromName[0].toUpperCase()) : '?')) + '</div>' +
-      '<div class="msg-body">' + (isOwn ? '' : '<span class="msg-author' + (canClick ? ' clickable' : '') + '" onclick="' + (canClick ? 'window.showUserProfile(\'' + escId(fromId) + '\',event)' : '') + '">' + window.escHtml(m.fromName || 'Anon') + '</span>') +
-      '<div class="' + (isOwn ? 'msg-bubble own' : 'msg-bubble') + '">' + bodyHtml + (m.reaction ? '<div class="msg-reaction-bubble">' + window.escHtml(m.reaction) + '</div>' : '') + '</div>' +
-      '<div class="msg-info"><span class="msg-time">' + time + '</span><div class="msg-actions"><button class="msg-action-btn" onclick="window.toggleReactions(\'' + escId(m.id) + '\')">👍</button>' +
+    var hasPin = m.pinned
+    return '<div class="' + cls + ' msg-wrapper' + (grouped ? ' grouped' : '') + '" data-id="' + escId(m.id) + '">' +
+      (grouped ? '' : '<div class="msg-avatar' + (canClick ? ' clickable' : '') + '" style="' + (avatar ? 'background-image:' + cssUrl(avatar) + ';background-size:cover' : '') + '" onclick="' + (canClick ? 'window.showUserProfile(\'' + escId(fromId) + '\',event)' : '') + '">' + (avatar ? '' : (m.fromName ? window.escHtml(m.fromName[0].toUpperCase()) : '?')) + '</div>') +
+      '<div class="msg-body">' + (isOwn || grouped ? '' : '<span class="msg-author' + (canClick ? ' clickable' : '') + '" onclick="' + (canClick ? 'window.showUserProfile(\'' + escId(fromId) + '\',event)' : '') + '">' + window.escHtml(m.fromName || 'Anon') + '</span>') +
+      '<div class="' + (isOwn ? 'msg-bubble own' : 'msg-bubble') + (hasPin ? ' pinned' : '') + '">' + bodyHtml + (m.reaction ? '<div class="msg-reaction-bubble">' + window.escHtml(m.reaction) + '</div>' : '') + '</div>' +
+      '<div class="msg-info"><span class="msg-time">' + time + '</span><div class="msg-actions">' +
+      '<button class="msg-action-btn" onclick="window.startReply(\'' + escId(m.id) + '\',\'' + escId(currentRoomId) + '\')">↩️</button>' +
+      '<button class="msg-action-btn" onclick="window.toggleReactions(\'' + escId(m.id) + '\')">👍</button>' +
       (isOwn ? '<button class="msg-action-btn" onclick="window.editMsg(\'' + escId(m.id) + '\',\'' + escId(currentRoomId) + '\')">✏️</button>' : '') +
       (isOwn ? '<button class="msg-action-btn" onclick="window.deleteMsg(\'' + escId(m.id) + '\',\'' + escId(currentRoomId) + '\')">🗑</button>' : '') +
+      '<button class="msg-action-btn" onclick="window.showForwardModal(\'' + escId(m.id) + '\')">↗️</button>' +
+      (isOwn ? '<button class="msg-action-btn" onclick="window.togglePin(\'' + escId(m.id) + '\',\'' + escId(currentRoomId) + '\',' + (!hasPin).toString() + ')">' + (hasPin ? '📌' : '📍') + '</button>' : '') +
       '</div></div><div class="msg-reactions" id="reactions-' + escId(m.id) + '">' + reactHtml + '</div></div></div>'
   }
 
@@ -238,12 +297,68 @@
   var reactionsOpen = {}
   window.toggleReactions = function (id) { var el = document.getElementById('reactions-' + id); if (!el) return; reactionsOpen[id] = !reactionsOpen[id]; el.style.display = reactionsOpen[id] ? 'flex' : 'none' }
   window.addReact = async function (msgId, roomId, emoji) { await DB.addReaction(roomId, msgId, emoji); var el = document.getElementById('reactions-' + msgId); if (el) el.style.display = 'none'; reactionsOpen[msgId] = false }
-  window.deleteMsg = async function (id, roomId) { if (!id || !confirm("O'chirilsinmi?")) return; await DB.deleteMessage(roomId, id) }
+  window.deleteMsg = async function (id, roomId) { if (!id || !confirm("O'chirilsinmi?")) return; await DB.deleteMessage(roomId, id, true); toast("Xabar o'chirildi") }
+  window.togglePin = async function (id, roomId, pin) { await DB.pinMessage(roomId, id, pin); toast(pin ? 'Pin qilindi' : 'Pin olib tashlandi') }
+
+  window.startReply = function (id, roomId) {
+    var m = null
+    for (var i = 0; i < allMsgsCache.length; i++) { if (allMsgsCache[i].id === id) { m = allMsgsCache[i]; break } }
+    if (!m) return
+    replyTo = { id: id, name: m.fromName, text: (m.text || '(media)').slice(0, 100) }
+    var bar = $('chatReplyBar')
+    if (bar) {
+      bar.style.display = 'flex'
+      var rn = bar.querySelector('.chat-reply-name'); if (rn) rn.textContent = replyTo.name
+      var rt = bar.querySelector('.chat-reply-text'); if (rt) rt.textContent = replyTo.text
+    }
+    var inp = $('chatInput'); if (inp) inp.focus()
+  }
+
+  function cancelReply() {
+    replyTo = null
+    var bar = $('chatReplyBar')
+    if (bar) bar.style.display = 'none'
+  }
+
+  window.showForwardModal = function (id) {
+    var m = null
+    for (var i = 0; i < allMsgsCache.length; i++) { if (allMsgsCache[i].id === id) { m = allMsgsCache[i]; break } }
+    if (!m) return
+    var existing = document.getElementById('forwardModal')
+    if (existing) existing.remove()
+    var ov = document.createElement('div')
+    ov.id = 'forwardModal'; ov.className = 'modal-overlay'
+    ov.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000'
+    var html = '<div class="glass-card" style="padding:20px;width:300px;max-width:90vw;border-radius:16px"><h3 style="margin:0 0 12px;font-size:15px">Xabarni yo\'naltirish</h3><div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;padding:8px;background:var(--bg2);border-radius:8px">' + window.escHtml((m.text || '(media)').slice(0, 80)) + '</div><div class="forward-rooms" style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto">'
+    html += '<button class="forward-room-btn" data-room="main"><span class="cli-avatar" style="width:28px;height:28px;font-size:12px;display:inline-flex">∞</span> Umumiy Chat</button>'
+    for (var i = 0; i < allRooms.length; i++) {
+      var r = allRooms[i]
+      html += '<button class="forward-room-btn" data-room="' + r.id + '"><span class="cli-avatar" style="width:28px;height:28px;font-size:12px;display:inline-flex">#' + (r.name[0] || '#').toUpperCase() + '</span> ' + window.escHtml(r.name) + '</button>'
+    }
+    html += '</div><button id="forwardCancel" class="glass-btn glass-outline" style="width:100%;margin-top:12px">Bekor qilish</button></div>'
+    ov.innerHTML = html
+    document.body.appendChild(ov)
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove() })
+    ov.querySelectorAll('.forward-room-btn').forEach(function (el) {
+      el.addEventListener('click', async function () {
+        var targetRoom = el.dataset.room
+        if (!currentUser) return toast('Avval profilingizni yarating')
+        try {
+          await DB.sendMessage(targetRoom, { fromId: currentUser.id, fromName: currentUser.username, fromAvatar: currentUser.avatar || '', text: '↗️ ' + (m.text || ''), media: m.media || '', type: m.type || 'text', replyTo: '' })
+          toast("Xabar yo'naltirildi")
+        } catch (e) { toast('Xatolik') }
+        ov.remove()
+      })
+    })
+    document.getElementById('forwardCancel').addEventListener('click', function () { ov.remove() })
+  }
+
   window.openImageViewer = function (src) {
     var ov = document.getElementById('imgViewer'), img = document.getElementById('imgViewerSrc')
     if (!ov || !img) return
     img.src = src; ov.style.display = 'flex'; requestAnimationFrame(function () { ov.classList.add('open') })
   }
+
   window.showUserProfile = function (userId, e) {
     if (!userId || !allUsers.length) return
     var user = null
@@ -260,8 +375,7 @@
     var rect = (e && e.target) ? e.target.getBoundingClientRect() : null
     popup.style.display = 'block'; requestAnimationFrame(function () { popup.classList.add('open') })
     if (rect) {
-      var left = rect.left + rect.width / 2 - 140
-      var top = rect.bottom + 8
+      var left = rect.left + rect.width / 2 - 140; var top = rect.bottom + 8
       if (left < 10) left = 10
       if (top + 200 > window.innerHeight) top = rect.top - 220
       popup.style.left = left + 'px'; popup.style.top = top + 'px'
@@ -271,6 +385,27 @@
     var popup = document.getElementById('userProfilePopup')
     if (popup) { popup.classList.remove('open'); popup.style.display = 'none' }
   }
+
+  function openMediaGallery() {
+    var existing = document.getElementById('mediaGalleryModal')
+    if (existing) existing.remove()
+    var images = []
+    for (var i = 0; i < allMsgsCache.length; i++) { if (allMsgsCache[i].media && allMsgsCache[i].media.indexOf('data:image') === 0) images.push(allMsgsCache[i]) }
+    if (!images.length) { toast('Rasmlar topilmadi'); return }
+    var ov = document.createElement('div')
+    ov.id = 'mediaGalleryModal'; ov.className = 'modal-overlay'
+    ov.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000'
+    var html = '<div style="background:var(--bg1);border-radius:16px;padding:16px;width:90vw;max-width:600px;max-height:80vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="margin:0;font-size:15px">📷 Rasmlar (' + images.length + ')</h3><button id="mediaGalleryClose" style="border:none;background:var(--bg2);color:var(--text);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px">✕</button></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">'
+    for (var j = 0; j < images.length; j++) {
+      html += '<img src="' + window.escHtml(images[j].media) + '" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer" onclick="window.openImageViewer(\'' + window.escHtml(images[j].media) + '\')" />'
+    }
+    html += '</div></div>'
+    ov.innerHTML = html
+    document.body.appendChild(ov)
+    document.getElementById('mediaGalleryClose').addEventListener('click', function () { ov.remove() })
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove() })
+  }
+
   window.editMsg = function (id, roomId) {
     var el = document.querySelector('.msg-wrapper[data-id="' + escId(id) + '"] .msg-text')
     if (!el) return
@@ -296,19 +431,13 @@
       if (!user) return toast('Avval profilingizni yarating')
       if (!input) return
       var text = input.value.trim()
-      if (!text) return
-      try { await DB.sendMessage(currentRoomId, { fromId: user.id, fromName: user.username, fromAvatar: user.avatar || '', text: text }); input.value = ''; input.style.height = 'auto'; stopTyping() } catch (e) { toast('Xabar yuborilmadi.') }
+      if (!text && !replyTo) return
+      var payload = { fromId: user.id, fromName: user.username, fromAvatar: user.avatar || '', text: text }
+      if (replyTo) { payload.replyTo = replyTo.id; payload.replyToName = replyTo.name; payload.replyText = replyTo.text }
+      try { await DB.sendMessage(currentRoomId, payload); input.value = ''; input.style.height = 'auto'; cancelReply(); stopTyping() } catch (e) { toast('Xabar yuborilmadi.') }
     }
-    function startTyping() {
-      if (!currentUser) return
-      DB.setTyping(currentRoomId, currentUser.id, currentUser.username, true)
-      if (typingTimer) clearTimeout(typingTimer)
-      typingTimer = setTimeout(stopTyping, 2000)
-    }
-    function stopTyping() {
-      if (typingTimer) { clearTimeout(typingTimer); typingTimer = null }
-      if (currentUser) DB.setTyping(currentRoomId, currentUser.id, currentUser.username, false)
-    }
+    function startTyping() { if (!currentUser) return; DB.setTyping(currentRoomId, currentUser.id, currentUser.username, true); if (typingTimer) clearTimeout(typingTimer); typingTimer = setTimeout(stopTyping, 2000) }
+    function stopTyping() { if (typingTimer) { clearTimeout(typingTimer); typingTimer = null }; if (currentUser) DB.setTyping(currentRoomId, currentUser.id, currentUser.username, false) }
     if (sendBtn) sendBtn.addEventListener('click', send)
     if (input) {
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } })
@@ -319,7 +448,7 @@
       mediaInput.addEventListener('change', async function (e) {
         var f = e.target.files ? e.target.files[0] : null
         if (!f) return; if (!currentUser) return toast('Avval profilingizni yarating')
-        if (f.size > 2097152) return toast('Rasm hajmi 2 MB dan kichik bo\'lishi kerak')
+        if (f.size > 2097152) return toast("Rasm hajmi 2 MB dan kichik bo'lishi kerak")
         try {
           var dataUrl = await new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(r.result) }; r.onerror = rej; r.readAsDataURL(f) })
           await DB.sendMessage(currentRoomId, { fromId: currentUser.id, fromName: currentUser.username, fromAvatar: currentUser.avatar || '', text: '', media: dataUrl })
@@ -331,7 +460,7 @@
       var mediaRecorder = null, audioChunks = [], recording = false, voiceStream = null
       voiceBtn.addEventListener('click', async function () {
         if (recording) { if (mediaRecorder) mediaRecorder.stop(); recording = false; voiceBtn.classList.remove('recording'); return }
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return toast('Ovoz yozish qo\'llab-quvvatlanmaydi')
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return toast("Ovoz yozish qo'llab-quvvatlanmaydi")
         try {
           voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true })
           mediaRecorder = new MediaRecorder(voiceStream, { mimeType: 'audio/webm' }); audioChunks = []
@@ -345,9 +474,11 @@
             reader.readAsDataURL(blob)
           }
           mediaRecorder.start(); recording = true; voiceBtn.classList.add('recording')
-        } catch (e) { toast('Mikrofon ruxsati yo\'q') }
+        } catch (e) { toast("Mikrofon ruxsati yo'q") }
       })
     }
+    var cancelBtn = $('chatReplyCancel')
+    if (cancelBtn) cancelBtn.addEventListener('click', cancelReply)
   }
 
   function setupOnline() {
@@ -359,6 +490,7 @@
       var el = $('onlineCount')
       if (el) el.textContent = count + ' online'
       if (window.updateOnlineBadge) window.updateOnlineBadge(count)
+      if (currentRoomId !== 'main') { var se = $('chatRoomStatus'); if (se) { var other = getRoomOtherUser(); if (other) se.textContent = other.online ? 'online' : 'offline' } }
     })
     window.addEventListener('beforeunload', function () { if (currentUser) DB.updateUser(currentUser.id, { online: false }).catch(function () {}) })
   }
@@ -438,6 +570,10 @@
       }
     })
   }
+  function setupMediaGalleryBtn() {
+    var btn = $('chatMediaGalleryBtn')
+    if (btn) btn.addEventListener('click', openMediaGallery)
+  }
   function setupModalClose() { var m = $('setupModal'); if (m) m.addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModalEl() }); var cb = $('setupModalClose'); if (cb) cb.addEventListener('click', closeModalEl) }
 
   function setupSearch() {
@@ -464,5 +600,5 @@
       popup.classList.remove('open'); popup.style.display = 'none'
     }
   })
-  window.initChat = function () { setupBackButton(); setupRoomInfoBtn(); setupModalClose(); setupEditProfile(); setupAvatarUpload(); setupSaveHandler(); setupInput(); setupOnline(); setupRooms(); setupSearch(); initUserFlow() }
+  window.initChat = function () { setupBackButton(); setupRoomInfoBtn(); setupMediaGalleryBtn(); setupModalClose(); setupEditProfile(); setupAvatarUpload(); setupSaveHandler(); setupInput(); setupOnline(); setupRooms(); setupSearch(); initUserFlow() }
 })()

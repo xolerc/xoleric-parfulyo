@@ -74,6 +74,23 @@
       r.on('value', fn)
       return function () { r.off('value', fn) }
     },
+    subscribeMessagesBefore(roomId, beforeTime, limit, cb) {
+      if (!db) { cb([]); return noop }
+      var r = db.ref('chat/' + roomId + '/messages').orderByChild('time').endAt(beforeTime - 1).limitToLast(limit || 50)
+      var fn = function (s) {
+        var d = s.val()
+        if (!d) { cb([]); return }
+        var keys = Object.keys(d), msgs = []
+        for (var i = 0; i < keys.length; i++) { d[keys[i]].id = keys[i]; msgs.push(d[keys[i]]) }
+        msgs.sort(function (a, b) { return (a.time || 0) - (b.time || 0) })
+        cb(msgs)
+      }
+      r.once('value', fn)
+    },
+    async pinMessage(roomId, msgId, pin) {
+      if (!db) return
+      try { await db.ref('chat/' + roomId + '/messages/' + msgId + '/pinned').set(pin ? Date.now() : null) } catch (e) {}
+    },
     async sendMessage(roomId, msg) {
       if (!db) return
       var data = {
@@ -81,13 +98,18 @@
         fromAvatar: msg.fromAvatar || '', text: (msg.text || '').slice(0, 2000),
         media: (msg.media || '').slice(0, 9000000), time: Date.now(), reaction: '',
         replyTo: (msg.replyTo || '').slice(0, 50), replyToName: (msg.replyToName || '').slice(0, 30),
-        type: msg.type || 'text', fileUrl: (msg.fileUrl || '').slice(0, 500)
+        replyText: (msg.replyText || '').slice(0, 200), type: msg.type || 'text',
+        fileUrl: (msg.fileUrl || '').slice(0, 500)
       }
       var nr = db.ref('chat/' + roomId + '/messages').push()
       await nr.set(data)
       await db.ref('chat/' + roomId + '/info').update({ lastActivity: Date.now(), lastMessage: (data.text || '(media)').slice(0, 50) })
     },
-    async deleteMessage(roomId, msgId) { if (!db) return; try { await db.ref('chat/' + roomId + '/messages/' + msgId).remove() } catch (e) {} },
+    async deleteMessage(roomId, msgId, soft) {
+      if (!db) return
+      if (soft) { try { await db.ref('chat/' + roomId + '/messages/' + msgId).update({ text: '', media: '', deleted: true, fileUrl: '' }) } catch (e) {} }
+      else { try { await db.ref('chat/' + roomId + '/messages/' + msgId).remove() } catch (e) {} }
+    },
     async addReaction(roomId, msgId, reaction) { if (!db) return; try { await db.ref('chat/' + roomId + '/messages/' + msgId + '/reaction').set(reaction) } catch (e) {} },
     async editMessage(roomId, msgId, text) {
       if (!db) return
