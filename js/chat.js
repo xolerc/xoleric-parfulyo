@@ -1,14 +1,51 @@
+/* ============================================================
+   XOLERIC ∞ — Chat Module (xoleric-chat compatible)
+   Single global chat using /messages/main/
+   ============================================================ */
 const REACTIONS = ['👍', '❤️', '😊', '😂', '😮', '😢', '🙏', '🔥', '🎉', '💯'];
 const CACHE_KEY = 'xolerc_user';
+const MAIN_CHAT = 'main';
 
 let currentUser = null;
-let unsubscribers = {};
-let currentConvId = null;
+let unsub = null;
 let onlineUsers = {};
 let initResolved = false;
-
 let dbOnline = false;
 
+/* ===== DOM refs ===== */
+const $ = id => document.getElementById(id);
+const chatListView = $('chatListView');
+const chatRoomView = $('chatRoomView');
+const chatMessages = $('chatMessages');
+const chatInput = $('chatInput');
+const chatSendBtn = $('chatSendBtn');
+const chatMediaBtn = $('chatMediaBtn');
+const chatVoiceBtn = $('chatVoiceBtn');
+const chatMediaInput = $('chatMediaInput');
+const sidebarChats = $('sidebarChats');
+const chatBackBtn = $('chatBackBtn');
+const chatRoomName = $('chatRoomName');
+const chatRoomStatus = $('chatRoomStatus');
+const chatRoomAvatar = $('chatRoomAvatar');
+const chatInputArea = $('chatInputArea');
+const chatJoinArea = $('chatJoinArea');
+
+/* ===== Navigation ===== */
+function showRoomView() {
+  chatListView.style.display = 'none';
+  chatRoomView.style.display = 'flex';
+}
+
+function showListView() {
+  chatRoomView.style.display = 'none';
+  chatListView.style.display = 'flex';
+  if (unsub) { unsub(); unsub = null; }
+  renderSidebar();
+}
+
+chatBackBtn.addEventListener('click', showListView);
+
+/* ===== DB helpers ===== */
 async function dbPing() {
   try {
     const ctrl = new AbortController();
@@ -24,37 +61,28 @@ async function dbPing() {
 }
 
 function showServerOffline() {
-  const msgs = document.getElementById('chatMessages');
-  if (msgs) {
-    msgs.innerHTML = '<div class="chat-empty" style="padding:60px 20px">' +
-      '<div style="font-size:32px;margin-bottom:12px;opacity:0.2">!</div>' +
-      '<div style="font-size:14px;font-weight:600;margin-bottom:6px">Server hozircha mavjud emas</div>' +
-      '<div style="font-size:11px;color:var(--text-muted);margin-bottom:16px">Keyinroq qayta urinib ko\'ring</div>' +
-      '<button class="glass-btn" onclick="location.reload()">Qayta ulanish</button></div>';
-  }
-  document.getElementById('chatInputArea').style.display = 'none';
-  document.getElementById('chatJoinArea').style.display = 'none';
-  document.getElementById('sidebarChats').innerHTML = '<div class="conv-empty">Server bilan bog\'lanish yo\'q</div>';
-  document.getElementById('chatHeaderName').textContent = 'Xoleric Chat';
-  document.getElementById('chatHeaderMeta').textContent = 'offline';
+  chatMessages.innerHTML = '<div class="chat-empty" style="padding:60px 20px">' +
+    '<div style="font-size:32px;margin-bottom:12px;opacity:0.2">!</div>' +
+    '<div style="font-size:14px;font-weight:600;margin-bottom:6px">Server hozircha mavjud emas</div>' +
+    '<div style="font-size:11px;color:var(--text-muted);margin-bottom:16px">Keyinroq qayta urinib ko\'ring</div>' +
+    '<button class="glass-btn" onclick="location.reload()">Qayta ulanish</button></div>';
+  chatInputArea.style.display = 'none';
+  chatJoinArea.style.display = 'none';
 }
 
 function hideLoading() {
-  const overlay = document.getElementById('loadingOverlay');
-  if (overlay) {
-    overlay.classList.add('fade-out');
-    setTimeout(() => { overlay.style.display = 'none'; }, 500);
-  }
+  const o = $('loadingOverlay');
+  if (o) { o.classList.add('fade-out'); setTimeout(() => { o.style.display = 'none'; }, 500); }
 }
 
 function hideChatLoader() {
-  const loader = document.getElementById('chatLoader');
-  if (loader) loader.classList.add('hidden');
+  const l = $('chatLoader');
+  if (l) l.classList.add('hidden');
 }
 
 function showChatLoader() {
-  const loader = document.getElementById('chatLoader');
-  if (loader) loader.classList.remove('hidden');
+  const l = $('chatLoader');
+  if (l) l.classList.remove('hidden');
 }
 
 async function ensureUser() {
@@ -82,24 +110,21 @@ async function ensureUser() {
   if (cachedRaw && uid) {
     try { const p = JSON.parse(cachedRaw); if (p && p.id === uid) cachedUser = p; } catch {}
   }
-
   if (cachedUser) {
     currentUser = cachedUser;
-    document.getElementById('setupModal').style.display = 'none';
+    $('setupModal').style.display = 'none';
     updateSidebarUser(cachedUser);
-    document.getElementById('sidebarChats').innerHTML = '<div class="conv-empty">Yuklanmoqda...</div>';
+    renderSidebar();
     hideLoading();
     hideChatLoader();
     DB.updateUser(cachedUser.id, { online: true }).catch(() => {});
-    DB.migrateOldMessages().catch(() => {});
-    loadConversations().catch(() => {});
     initResolved = true;
     return;
   }
 
   showChatLoader();
   const safetyTimer = setTimeout(() => {
-    const m = document.getElementById('setupModal');
+    const m = $('setupModal');
     if (m) { m.style.display = 'flex'; hideLoading(); hideChatLoader(); }
   }, 6000);
 
@@ -108,15 +133,12 @@ async function ensureUser() {
       await dbPing();
       const user = await ensureUser();
       clearTimeout(safetyTimer);
-
       if (user) {
-        document.getElementById('setupModal').style.display = 'none';
+        $('setupModal').style.display = 'none';
         updateSidebarUser(user);
-        await loadConversations();
-        const items = document.querySelectorAll('.chat-list-item');
-        if (items.length > 0) items[0].click();
+        renderSidebar();
       } else {
-        document.getElementById('setupModal').style.display = 'flex';
+        $('setupModal').style.display = 'flex';
       }
     } catch (e) {
       if (e && e.name !== 'AbortError') console.error('Init error:', e);
@@ -128,16 +150,16 @@ async function ensureUser() {
   })();
 })();
 
-document.getElementById('setupSave').addEventListener('click', async () => {
-  const name = document.getElementById('setupName').value.trim();
+$('setupSave').addEventListener('click', async () => {
+  const name = $('setupName').value.trim();
   if (!name) return alert('Username kiriting');
-  const avatar = document.getElementById('setupAvatar').textContent === '?' ? '' : document.getElementById('setupAvatar').textContent;
-  const bio = document.getElementById('setupBio').value.trim();
+  const avatar = $('setupAvatar').textContent === '?' ? '' : $('setupAvatar').textContent;
+  const bio = $('setupBio').value.trim();
   if (currentUser) {
     try { await DB.updateUser(currentUser.id, { username: name, bio, avatar }); } catch {}
     currentUser = { ...currentUser, username: name, bio, avatar };
     localStorage.setItem(CACHE_KEY, JSON.stringify(currentUser));
-    document.getElementById('setupModal').style.display = 'none';
+    $('setupModal').style.display = 'none';
     updateSidebarUser(currentUser);
     return;
   }
@@ -148,47 +170,38 @@ document.getElementById('setupSave').addEventListener('click', async () => {
     currentUser = user;
     localStorage.setItem('xolerc_uid', user.id);
     localStorage.setItem(CACHE_KEY, JSON.stringify(user));
-    document.getElementById('setupModal').style.display = 'none';
+    $('setupModal').style.display = 'none';
     updateSidebarUser(user);
-    await DB.migrateOldMessages();
-    await loadConversations();
+    renderSidebar();
   } catch {
     alert('Serverga ulanishda xatolik. Keyinroq qayta urinib ko\'ring.');
   }
 });
 
-document.getElementById('editProfileBtn').addEventListener('click', () => {
-  const m = document.getElementById('setupModal');
+$('editProfileBtn').addEventListener('click', () => {
+  const m = $('setupModal');
   m.style.display = 'flex';
-  document.getElementById('setupSave').textContent = 'Saqlash';
+  $('setupSave').textContent = 'Saqlash';
   if (currentUser) {
-    document.getElementById('setupName').value = currentUser.username || '';
-    document.getElementById('setupBio').value = currentUser.bio || '';
-    document.getElementById('setupAvatar').textContent = currentUser.avatar || '?';
+    $('setupName').value = currentUser.username || '';
+    $('setupBio').value = currentUser.bio || '';
+    $('setupAvatar').textContent = currentUser.avatar || '?';
   }
 });
 
-const setupAvatarInput = document.getElementById('setupAvatarInput');
-const setupAvatar = document.getElementById('setupAvatar');
-setupAvatarInput.addEventListener('change', e => {
+$('setupAvatarInput').addEventListener('change', e => {
   const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
-  r.onload = () => { setupAvatar.textContent = ''; setupAvatar.style.backgroundImage = `url(${r.result})`; setupAvatar.style.backgroundSize = 'cover'; };
+  r.onload = () => { $('setupAvatar').textContent = ''; $('setupAvatar').style.backgroundImage = `url(${r.result})`; $('setupAvatar').style.backgroundSize = 'cover'; };
   r.readAsDataURL(f);
 });
 
-// Close modals on overlay click
-document.getElementById('createModal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) e.target.style.display = 'none';
-});
-document.getElementById('setupModal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) e.target.style.display = 'none';
-});
+$('setupModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.target.style.display = 'none'; });
 
 function updateSidebarUser(user) {
-  document.getElementById('sidebarName').textContent = user.username || 'User';
-  document.getElementById('sidebarStatus').textContent = 'online';
-  const sa = document.getElementById('sidebarAvatar');
+  $('sidebarName').textContent = user.username || 'User';
+  $('sidebarStatus').textContent = 'online';
+  const sa = $('sidebarAvatar');
   if (user.avatar) {
     sa.textContent = '';
     sa.style.backgroundImage = `url(${user.avatar})`;
@@ -199,192 +212,52 @@ function updateSidebarUser(user) {
   }
 }
 
-// ===== CONVERSATIONS =====
-async function loadConversations() {
+/* ===== Sidebar — Single global chat entry ===== */
+function renderSidebar() {
+  sidebarChats.innerHTML =
+    '<div class="chat-list-item" id="mainChatEntry" style="cursor:pointer">' +
+      '<div class="cli-avatar">∞</div>' +
+      '<div class="cli-info">' +
+        '<span class="cli-name">Umumiy Chat</span>' +
+        '<span class="cli-msg">Barcha xabarlar</span>' +
+      '</div>' +
+    '</div>';
+  const entry = $('mainChatEntry');
+  if (entry) entry.addEventListener('click', openMainChat);
+}
+
+/* ===== Open Main Chat ===== */
+async function openMainChat() {
+  if (unsub) { unsub(); unsub = null; }
+
+  chatRoomName.textContent = 'Umumiy Chat';
+  chatRoomStatus.textContent = 'online';
+  chatRoomAvatar.textContent = '∞';
+  chatJoinArea.style.display = 'none';
+  chatInputArea.style.display = 'flex';
+  showRoomView();
+
+  chatMessages.innerHTML = '<div class="chat-loading"><div class="mini-loader"></div> Xabarlar yuklanmoqda...</div>';
   try {
-    const convs = await DB.getConversations();
-    renderConversationList(convs);
+    const msgs = await DB.getMessages();
+    renderMessages(msgs);
+    unsub = DB.subscribe(renderMessages);
   } catch {
-    renderConversationList([]);
+    chatMessages.innerHTML = '<div class="chat-empty">Xabarlarni yuklashda xatolik</div>';
   }
 }
 
-function renderConversationList(convs) {
-  const container = document.getElementById('sidebarChats');
-  const uid = currentUser?.id;
-  const channels = convs.filter(c => c.type === 'channel');
-  const groups = convs.filter(c => c.type === 'group');
-  const privates = convs.filter(c => c.type === 'private' && c.members && uid && c.members[uid]);
-
-  let html = '';
-
-  if (channels.length) {
-    html += '<div class="conv-group-label">KANALLAR</div>';
-    html += channels.map(c => convItem(c)).join('');
-  }
-
-  if (groups.length) {
-    html += '<div class="conv-group-label">GURUHLAR</div>';
-    html += groups.map(c => convItem(c)).join('');
-  }
-
-  if (privates.length) {
-    html += '<div class="conv-group-label">SHAXSIY</div>';
-    html += privates.map(c => convItem(c)).join('');
-  }
-
-  if (!html) {
-    html = '<div class="conv-empty">Hali hech qanday chat mavjud emas.<br>Yangi kanal yoki guruh yarating.</div>' +
-      '<div style="text-align:center;padding:8px"><button class="glass-btn" onclick="loadConversations()" style="font-size:11px;padding:6px 14px">Qayta ulanish</button></div>';
-  }
-
-  container.innerHTML = html;
-
-  container.querySelectorAll('.chat-list-item').forEach(el => {
-    el.addEventListener('click', () => openConversation(el.dataset.convId));
-  });
-}
-
-function convItem(c) {
-  const name = c.name || 'Isimsiz';
-  return '<div class="chat-list-item' + (currentConvId === c.id ? ' active' : '') + '" data-conv-id="' + c.id + '">' +
-    '<div class="cli-avatar">' + (c.type === 'channel' ? '#' : c.type === 'group' ? '&' : '@') + '</div>' +
-    '<div class="cli-info">' +
-      '<span class="cli-name">' + esc(name) + '</span>' +
-      '<span class="cli-msg">' + (c.desc ? esc(c.desc.slice(0, 30)) : (c.type === 'channel' ? 'Kanal' : c.type === 'group' ? 'Guruh' : 'Shaxsiy')) + '</span>' +
-    '</div>' +
-    '<button class="cli-del-btn" onclick="deleteConversation(event, \'' + c.id + '\')" title="O\'chirish"></button></div>';
-}
-
-window.deleteConversation = async function(e, convId) {
-  e.stopPropagation();
-  if (!confirm("Konversiyani o'chirishni xohlaysizmi?")) return;
-  try { await DB.deleteConversation(convId); } catch {}
-  if (currentConvId === convId) {
-    currentConvId = null;
-    document.getElementById('chatMessages').innerHTML = '<div class="chat-empty">Konversiyani tanlang</div>';
-    document.getElementById('chatInputArea').style.display = 'none';
-    document.getElementById('chatJoinArea').style.display = 'none';
-    document.getElementById('chatHeaderName').textContent = 'Xoleric Chat';
-    document.getElementById('chatHeaderMeta').textContent = 'super chat';
-  }
-  await loadConversations();
-};
-
-// ===== OPEN CONVERSATION =====
-async function openConversation(convId) {
-  if (currentConvId === convId) return;
-  currentConvId = convId;
-  document.querySelectorAll('.chat-list-item').forEach(el => el.classList.toggle('active', el.dataset.convId === convId));
-
-  Object.values(unsubscribers).forEach(fn => fn());
-  unsubscribers = {};
-
-  const conv = await DB.getConversation(convId);
-  if (!conv) return;
-
-  const isMember = conv.members && conv.members[currentUser?.id];
-  const isOwner = conv.ownerId === currentUser?.id;
-  const header = document.getElementById('chatHeaderName');
-  const joinArea = document.getElementById('chatJoinArea');
-  const inputArea = document.getElementById('chatInputArea');
-  const messagesEl = document.getElementById('chatMessages');
-
-  header.textContent = conv.name || 'Isimsiz';
-
-  if (!isMember && conv.type !== 'private') {
-    joinArea.style.display = 'flex';
-    inputArea.style.display = 'none';
-    joinArea.innerHTML = '<button class="glass-btn" onclick="joinConversation(\'' + convId + '\')">Qo\'shilish</button>';
-    messagesEl.innerHTML = '<div class="chat-empty">Bu chatga a\'zo emassiz. Qo\'shilish uchun tugmani bosing.</div>';
-    document.getElementById('chatHeaderMeta').textContent = conv.type === 'channel' ? 'Kanal' : 'Guruh';
-    return;
-  }
-
-  joinArea.style.display = 'none';
-  inputArea.style.display = 'flex';
-
-  if (conv.type === 'channel' && !isOwner) {
-    inputArea.style.display = 'none';
-  }
-
-  document.getElementById('chatHeaderMeta').textContent =
-    conv.type === 'channel' ? 'Kanal' : conv.type === 'group' ? 'Guruh' : 'Shaxsiy';
-
-  messagesEl.innerHTML = '<div class="chat-loading"><div class="mini-loader"></div> Xabarlar yuklanmoqda...</div>';
-  const msgs = await DB.getMessages(convId);
-  renderMessages(msgs);
-
-  unsubscribers[convId] = DB.subscribe(convId, renderMessages);
-}
-
-window.joinConversation = async function(convId) {
-  if (!currentUser) return alert('Avval profilingizni yarating');
-  await DB.joinConversation(convId, currentUser.id);
-  await openConversation(convId);
-  await loadConversations();
-};
+window.openMainChat = openMainChat;
 
 function renderMessages(msgs) {
-  const container = document.getElementById('chatMessages');
-  container.innerHTML = msgs.map((m, i) => {
+  chatMessages.innerHTML = msgs.map((m, i) => {
     const showDate = i === 0 || new Date(msgs[i - 1]?.time).toDateString() !== new Date(m.time).toDateString();
     return (showDate ? '<div class="date-sep"><span>' + getDateLabel(m.time) + '</span></div>' : '') + renderMessage(m);
   }).join('');
-  container.scrollTop = container.scrollHeight;
-}
-
-function renderMessage(m) {
-  const isOwn = m.fromId === currentUser?.id;
-  const cls = isOwn ? 'msg own' : 'msg other';
-  const avatar = m.fromAvatar && m.fromAvatar !== '?' ? m.fromAvatar : null;
-  const time = m.time ? new Date(m.time).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '';
-  const media = m.media ? '<div class="msg-media"><img src="' + m.media + '" loading="lazy" onclick="window.open(\'' + m.media + '\',\'_blank\')" /></div>' : '';
-  const fromId = m.fromId || '';
-  const canClick = !isOwn && fromId;
-  return '<div class="' + cls + ' msg-wrapper" data-id="' + (m.id || '') + '">' +
-    '<div class="msg-avatar' + (canClick ? ' clickable' : '') + '" onclick="' + (canClick ? 'openPrivateChat(\'' + fromId + '\')' : '') + '" style="' + (avatar ? 'background-image:url(' + avatar + ');background-size:cover' : '') + '">' + (avatar ? '' : (m.fromName ? m.fromName[0].toUpperCase() : '?')) + '</div>' +
-    '<div class="msg-body">' +
-    (isOwn ? '' : '<span class="msg-author' + (canClick ? ' clickable' : '') + '" onclick="' + (canClick ? 'openPrivateChat(\'' + fromId + '\')' : '') + '">' + esc(m.fromName || 'Anon') + '</span>') +
-    '<div class="' + (isOwn ? 'msg-bubble own' : 'msg-bubble') + '">' +
-    (m.text ? '<div class="msg-text">' + esc(m.text) + '</div>' : '') +
-    media +
-    (m.reaction ? '<div class="msg-reaction-bubble">' + m.reaction + '</div>' : '') +
-    '</div>' +
-    '<div class="msg-info">' +
-      '<span class="msg-time">' + time + '</span>' +
-      '<div class="msg-actions">' +
-        '<button class="msg-action-btn" onclick="toggleReactions(\'' + m.id + '\')">\u{1F60A}</button>' +
-        (isOwn ? '<button class="msg-action-btn" onclick="deleteMsg(\'' + m.id + '\')">\u{1F5D1}</button>' : '') +
-      '</div>' +
-    '</div>' +
-    '<div class="msg-reactions" id="reactions-' + m.id + '">' +
-    REACTIONS.map(r => '<button class="react-emoji" onclick="addReact(\'' + m.id + '\',\'' + r + '\')">' + r + '</button>').join('') +
-    '</div>' +
-    '</div></div>';
-}
-
-window.openPrivateChat = async function(userId) {
-  if (!currentUser || !userId || userId === currentUser.id) return;
-  const convs = await DB.getConversations();
-  let priv = convs.find(c =>
-    c.type === 'private' && c.members && c.members[currentUser.id] && c.members[userId]
-  );
-  if (priv) {
-    openConversation(priv.id);
-    loadConversations();
-    return;
-  }
-  const otherUser = await DB.getUser(userId);
-  priv = await DB.createConversation({
-    type: 'private',
-    name: otherUser?.username || 'Foydalanuvchi',
-    ownerId: currentUser.id,
-    members: { [currentUser.id]: true, [userId]: true },
+  requestAnimationFrame(() => {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   });
-  await loadConversations();
-  openConversation(priv.id);
-};
+}
 
 function getDateLabel(ts) {
   if (!ts) return '';
@@ -397,75 +270,197 @@ function getDateLabel(ts) {
 
 function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
-window.deleteMsg = async function(id) {
-  if (!id || !currentConvId || !confirm("O'chirilsinmi?")) return;
-  await DB.deleteMessage(currentConvId, id);
+/* ===== Message Bubble ===== */
+function renderMessage(m) {
+  const isOwn = m.fromId === currentUser?.id;
+  const cls = isOwn ? 'msg own' : 'msg other';
+  const avatar = m.fromAvatar && m.fromAvatar !== '?' ? m.fromAvatar : null;
+  const time = m.time ? new Date(m.time).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '';
+  const fromId = m.fromId || '';
+  const canClick = !isOwn && fromId;
+
+  let bodyHtml = '';
+  if (m.text) {
+    bodyHtml += '<div class="msg-text">' + esc(m.text) + '</div>';
+  }
+  if (m.media && m.media.startsWith('data:audio')) {
+    bodyHtml += '<div class="msg-audio"><button class="audio-play-btn" onclick="playAudio(\'' + m.id + '\', this)">▶</button><span class="audio-duration">Ovozli xabar</span></div>';
+  } else if (m.media && (m.media.startsWith('data:image') || m.media.startsWith('data:video') || m.media.startsWith('blob:'))) {
+    bodyHtml += '<div class="msg-media"><img src="' + m.media + '" loading="lazy" onclick="window.open(\'' + m.media + '\',\'_blank\')" /></div>';
+  } else if (m.media && m.media.startsWith('http')) {
+    bodyHtml += '<div class="msg-media"><img src="' + m.media + '" loading="lazy" onclick="window.open(\'' + m.media + '\',\'_blank\')" /></div>';
+  }
+  if (m.replyTo) {
+    bodyHtml = '<div class="msg-reply-bar">↪ ' + esc(m.replyToName || 'Xabar') + '</div>' + bodyHtml;
+  }
+  if (m.edited) {
+    bodyHtml += '<span class="edited-badge">tahrirlangan</span>';
+  }
+
+  return '<div class="' + cls + ' msg-wrapper" data-id="' + (m.id || '') + '">' +
+    '<div class="msg-avatar' + (canClick ? ' clickable' : '') + '" style="' + (avatar ? 'background-image:url(' + avatar + ');background-size:cover' : '') + '">' + (avatar ? '' : (m.fromName ? m.fromName[0].toUpperCase() : '?')) + '</div>' +
+    '<div class="msg-body">' +
+    (isOwn ? '' : '<span class="msg-author">' + esc(m.fromName || 'Anon') + '</span>') +
+    '<div class="' + (isOwn ? 'msg-bubble own' : 'msg-bubble') + '">' + bodyHtml +
+    (m.reaction ? '<div class="msg-reaction-bubble">' + m.reaction + '</div>' : '') +
+    '</div>' +
+    '<div class="msg-info">' +
+      '<span class="msg-time">' + time + '</span>' +
+      '<div class="msg-actions">' +
+        '<button class="msg-action-btn" onclick="toggleReactions(\'' + m.id + '\')">😊</button>' +
+        (isOwn ? '<button class="msg-action-btn" onclick="deleteMsg(\'' + m.id + '\')">🗑</button>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="msg-reactions" id="reactions-' + m.id + '">' +
+    REACTIONS.map(r => '<button class="react-emoji" onclick="addReact(\'' + m.id + '\',\'' + r + '\')">' + r + '</button>').join('') +
+    '</div>' +
+    '</div></div>';
+}
+
+/* Audio playback */
+const audioCache = {};
+window.playAudio = async function(msgId, btn) {
+  if (audioCache[msgId]) {
+    audioCache[msgId].currentTime = 0;
+    audioCache[msgId].play();
+    btn.textContent = '⏹';
+
+    setTimeout(() => {
+      audioCache[msgId].play();
+    }, 100);
+    return;
+  }
+  btn.textContent = '⏳';
+  try {
+    const msgs = await DB.getMessages();
+    const msg = msgs.find(x => x.id === msgId);
+    if (!msg || !msg.media) { btn.textContent = '▶'; return; }
+
+    if (msg.media.startsWith('blob:') || msg.media.startsWith('data:audio')) {
+      const audio = new Audio(msg.media);
+      audioCache[msgId] = audio;
+      audio.play();
+      btn.textContent = '⏹';
+      audio.onended = () => { btn.textContent = '▶'; };
+      audio.onerror = () => { btn.textContent = '▶'; };
+      return;
+    }
+
+    btn.textContent = '▶';
+  } catch {
+    btn.textContent = '▶';
+  }
 };
 
 const reactionsOpen = {};
 window.toggleReactions = function(id) {
-  const el = document.getElementById('reactions-' + id);
+  const el = $('reactions-' + id);
   if (!el) return;
   reactionsOpen[id] = !reactionsOpen[id];
   el.style.display = reactionsOpen[id] ? 'flex' : 'none';
 };
 
 window.addReact = async function(msgId, emoji) {
-  if (!currentConvId) return;
-  await DB.addReaction(currentConvId, msgId, emoji);
-  const el = document.getElementById('reactions-' + msgId);
+  await DB.addReaction(msgId, emoji);
+  const el = $('reactions-' + msgId);
   if (el) el.style.display = 'none';
   reactionsOpen[msgId] = false;
 };
 
-// ===== SEND =====
-(function setupInput() {
-  const input = document.getElementById('chatInput');
-  const sendBtn = document.getElementById('chatSendBtn');
+window.deleteMsg = async function(id) {
+  if (!id || !confirm("O'chirilsinmi?")) return;
+  await DB.deleteMessage(id);
+};
 
+/* ===== Send Message ===== */
+(function setupInput() {
   async function send() {
-    if (!currentConvId || !currentUser) return;
-    if (!dbOnline && !currentUser) return alert('Server hozircha mavjud emas. Xabarlaringiz keshlangan holda saqlanadi.');
-    const text = input.value.trim();
-    const preview = document.getElementById('chatPreview');
-    const img = preview.querySelector('img');
-    const media = preview.style.display !== 'none' && img ? img.src : '';
-    if (!text && !media) return;
+    if (!currentUser) return;
+    if (!dbOnline && !currentUser) return alert('Server hozircha mavjud emas.');
+    const text = chatInput.value.trim();
+    if (!text) return;
     try {
       await DB.sendMessage({
-        convId: currentConvId, fromId: currentUser.id, fromName: currentUser.username,
-        fromAvatar: currentUser.avatar || '', text, media,
+        fromId: currentUser.id, fromName: currentUser.username,
+        fromAvatar: currentUser.avatar || '', text,
       });
-      input.value = ''; input.style.height = 'auto';
-      preview.style.display = 'none';
-      if (img) img.src = '';
+      chatInput.value = ''; chatInput.style.height = 'auto';
     } catch {
-      alert('Xabar yuborilmadi. Server bilan bog\'lanish yo\'q.');
+      alert('Xabar yuborilmadi.');
     }
   }
 
-  sendBtn.addEventListener('click', send);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-  input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 100) + 'px'; });
+  chatSendBtn.addEventListener('click', send);
+  chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+  chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px'; });
 
-  const mediaInput = document.getElementById('chatMediaInput');
-  const mediaBtn = document.getElementById('chatMediaBtn');
-  const preview = document.getElementById('chatPreview');
-  const previewImg = document.getElementById('chatPreviewImg');
-
-  mediaBtn.addEventListener('click', () => mediaInput.click());
-  mediaInput.addEventListener('change', e => {
+  /* Image picker */
+  chatMediaBtn.addEventListener('click', () => chatMediaInput.click());
+  chatMediaInput.addEventListener('change', async e => {
     const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = () => { previewImg.src = r.result; preview.style.display = 'block'; };
-    r.readAsDataURL(f);
-  });
-  document.getElementById('chatPreviewRemove').addEventListener('click', () => {
-    preview.style.display = 'none'; previewImg.src = ''; mediaInput.value = '';
+    if (!currentUser) return alert('Avval profilingizni yarating');
+    try {
+      const dataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+      await DB.sendMessage({
+        fromId: currentUser.id, fromName: currentUser.username,
+        fromAvatar: currentUser.avatar || '', text: '', media: dataUrl,
+      });
+    } catch {
+      alert('Rasm yuborilmadi.');
+    }
+    chatMediaInput.value = '';
   });
 })();
 
-// ===== ONLINE USERS =====
+/* ===== Voice Recording ===== */
+(function setupVoice() {
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let recording = false;
+
+  chatVoiceBtn.addEventListener('click', async () => {
+    if (recording) {
+      mediaRecorder.stop();
+      recording = false;
+      chatVoiceBtn.classList.remove('recording');
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      return alert('Ovoz yozish qo\'llab-quvvatlanmaydi');
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        if (!currentUser || !audioChunks.length) return;
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = reader.result;
+          try {
+            await DB.sendMessage({
+              fromId: currentUser.id, fromName: currentUser.username,
+              fromAvatar: currentUser.avatar || '', text: '', media: base64,
+            });
+          } catch {
+            alert('Ovoz yuborilmadi.');
+          }
+        };
+        reader.readAsDataURL(blob);
+      };
+      mediaRecorder.start();
+      recording = true;
+      chatVoiceBtn.classList.add('recording');
+    } catch {
+      alert('Mikrofon ruxsati yo\'q');
+    }
+  });
+})();
+
+/* ===== Online Users ===== */
 (function setupOnline() {
   async function refresh() {
     try {
@@ -474,7 +469,7 @@ window.addReact = async function(msgId, emoji) {
       onlineUsers = {};
       online.forEach(u => { onlineUsers[u.id] = u; });
       const count = online.length + (currentUser ? 1 : 0);
-      document.getElementById('onlineCount').textContent = count + ' online';
+      $('onlineCount').textContent = count + ' online';
       if (window.updateOnlineBadge) window.updateOnlineBadge(count);
     } catch {}
   }
@@ -485,92 +480,5 @@ window.addReact = async function(msgId, emoji) {
   });
 })();
 
-// ===== CREATE CONVERSATION =====
-document.getElementById('createChannelBtn').addEventListener('click', () => showCreateModal('channel'));
-document.getElementById('createGroupBtn').addEventListener('click', () => showCreateModal('group'));
-document.getElementById('createPrivateBtn').addEventListener('click', showPrivateModal);
-
-function showCreateModal(type) {
-  const m = document.getElementById('createModal');
-  const title = document.getElementById('createModalTitle');
-  const nameInput = document.getElementById('createConvName');
-  const descInput = document.getElementById('createConvDesc');
-  const userSelect = document.getElementById('createConvUsers');
-  const userSelectWrap = document.getElementById('createUserSelectWrap');
-
-  title.textContent = type === 'channel' ? 'Yangi kanal' : 'Yangi guruh';
-  nameInput.value = ''; descInput.value = '';
-  nameInput.placeholder = type === 'channel' ? 'Kanal nomi' : 'Guruh nomi';
-  descInput.style.display = type === 'private' ? 'none' : 'block';
-  userSelectWrap.style.display = 'none';
-
-  m.style.display = 'flex';
-  m.dataset.type = type;
-
-  document.getElementById('createConvSave').onclick = async () => {
-    const name = nameInput.value.trim();
-    if (!name) return alert('Nom kiriting');
-    if (!currentUser) return alert('Avval profilingizni yarating');
-    const conv = await DB.createConversation({
-      type, name, desc: descInput.value.trim(),
-      ownerId: currentUser.id,
-      members: { [currentUser.id]: true },
-    });
-    m.style.display = 'none';
-    await loadConversations();
-    openConversation(conv.id);
-    document.querySelectorAll('.chat-list-item').forEach(el => el.classList.remove('active'));
-  };
-}
-
-async function showPrivateModal() {
-  const m = document.getElementById('createModal');
-  document.getElementById('createModalTitle').textContent = 'Yangi shaxsiy chat';
-  document.getElementById('createConvName').value = '';
-  document.getElementById('createConvName').placeholder = 'Foydalanuvchi qidirish...';
-  document.getElementById('createConvDesc').style.display = 'none';
-  document.getElementById('createConvSave').textContent = 'Boshlash';
-
-  const userSelectWrap = document.getElementById('createUserSelectWrap');
-  userSelectWrap.style.display = 'block';
-  const select = document.getElementById('createConvUsers');
-  select.innerHTML = '<option value="">Foydalanuvchini tanlang...</option>';
-
-  try {
-    const users = await DB.getAllUsers();
-    users.filter(u => u.id !== currentUser?.id).forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u.id; opt.textContent = u.username || 'Anon';
-      select.appendChild(opt);
-    });
-  } catch {}
-
-  m.style.display = 'flex';
-  m.dataset.type = 'private';
-
-  document.getElementById('createConvSave').onclick = async () => {
-    const userId = select.value;
-    if (!userId) return alert('Foydalanuvchini tanlang');
-    if (!currentUser) return alert('Avval profilingizni yarating');
-
-    const convs = await DB.getConversations();
-    const existing = convs.find(c =>
-      c.type === 'private' && c.members && c.members[currentUser.id] && c.members[userId]
-    );
-    if (existing) {
-      m.style.display = 'none';
-      openConversation(existing.id);
-      return;
-    }
-
-    const otherUser = await DB.getUser(userId);
-    const conv = await DB.createConversation({
-      type: 'private', name: otherUser?.username || 'Foydalanuvchi',
-      ownerId: currentUser.id,
-      members: { [currentUser.id]: true, [userId]: true },
-    });
-    m.style.display = 'none';
-    await loadConversations();
-    openConversation(conv.id);
-  };
-}
+/* ===== Cleanup old conversation UI buttons ===== */
+/* createChannelBtn, createGroupBtn, createPrivateBtn still exist in HTML but are hidden/no-op */

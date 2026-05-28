@@ -21,6 +21,7 @@ const playBtn = document.getElementById('playmePlayBtn');
 const prevBtn = document.getElementById('playmePrevBtn');
 const nextBtn = document.getElementById('playmeNextBtn');
 const fullBtn = document.getElementById('playmeFullBtn');
+const pipBtn = document.getElementById('playmePipBtn');
 const currentEl = document.getElementById('playmeCurrent');
 const durEl = document.getElementById('playmeDuration');
 const progressFill = document.getElementById('playmeProgressFill');
@@ -31,6 +32,10 @@ const volumeIcon = document.getElementById('playmeVolumeIcon');
 const loader = document.getElementById('playmeLoader');
 const controls = document.getElementById('playmeControls');
 const wrap = document.getElementById('playmeWrap');
+
+const VIDEO_ID = 'playme-main';
+const ctrl = XEngine.controller;
+ctrl.register(VIDEO_ID, video);
 
 let currentIndex = 0;
 let progressDragging = false;
@@ -61,7 +66,7 @@ function playVideo(index) {
   const v = VIDEOS[index];
   video.src = v.file;
   loader.classList.remove('hidden');
-  video.play().catch(() => {});
+  ctrl.play(VIDEO_ID);
   titleEl.textContent = v.title;
   wrap.classList.remove('playing');
   renderList();
@@ -88,8 +93,8 @@ function renderList() {
 }
 
 playBtn.addEventListener('click', () => {
-  if (video.paused) video.play().catch(() => {});
-  else video.pause();
+  if (video.paused) ctrl.play(VIDEO_ID);
+  else ctrl.pause(VIDEO_ID);
 });
 
 prevBtn.addEventListener('click', () => {
@@ -105,6 +110,13 @@ fullBtn.addEventListener('click', () => {
   if (document.fullscreenElement) document.exitFullscreen();
   else video.requestFullscreen();
 });
+
+if (pipBtn) {
+  pipBtn.addEventListener('click', () => {
+    if (ctrl.isPipActive()) ctrl.exitPip();
+    else ctrl.enterPip(VIDEO_ID);
+  });
+}
 
 video.addEventListener('play', () => {
   playBtn.classList.add('playing');
@@ -151,7 +163,6 @@ video.addEventListener('error', () => {
   }
 });
 
-// Progress seek
 progressWrap.addEventListener('mousedown', e => { progressDragging = true; seek(e); });
 document.addEventListener('mousemove', e => { if (progressDragging) seek(e); });
 document.addEventListener('mouseup', () => { progressDragging = false; });
@@ -165,7 +176,6 @@ function seek(e) {
   if (video.duration) video.currentTime = pct * video.duration;
 }
 
-// Volume
 volumeEl.addEventListener('input', () => {
   video.volume = parseFloat(volumeEl.value);
   volumeIcon.classList.toggle('muted', video.volume === 0);
@@ -184,7 +194,6 @@ volumeIcon.addEventListener('click', () => {
   volumeIcon.classList.toggle('muted', video.volume === 0);
 });
 
-// Preload durations for all videos
 VIDEOS.forEach((v, i) => {
   const tmp = document.createElement('video');
   tmp.preload = 'metadata';

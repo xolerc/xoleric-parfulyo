@@ -48,17 +48,19 @@
         <div class="tab-content" id="tab-home">
           <div class="home-widgets">
             <div class="widget-card widget-clock" id="widgetClock">
-              <div class="widget-clock-icon"></div>
+              <canvas id="canvasClock" class="canvas-clock" width="120" height="120"></canvas>
               <div class="widget-clock-time" id="clockTime">00:00</div>
               <div class="widget-clock-date" id="clockDate">...</div>
             </div>
-            <div class="widget-card widget-calendar">
+            <div class="widget-card widget-calendar glass-calendar" id="widgetCalendar">
               <div class="widget-calendar-head">
                 <div class="widget-calendar-month" id="calMonth">Yanvar</div>
                 <div class="widget-calendar-day" id="calDay">1</div>
               </div>
               <div class="widget-calendar-weekday" id="calWeekday">Dushanba</div>
               <div class="widget-calendar-year" id="calYear">2026</div>
+              <div class="cal-grid" id="calGrid"></div>
+              <div class="cal-blur-bg"></div>
             </div>
             <div class="widget-card widget-quote">
               <div class="widget-quote-icon"></div>
@@ -78,7 +80,7 @@
           </div>
         </div>
 
-        <!-- ========== CHAT ========== -->
+        <!-- ========== CHAT (Telegram/WhatsApp style) ========== -->
         <div class="tab-content" id="tab-chat">
           <div class="chat-block" id="chatContainer">
             <div class="chat-depth"></div>
@@ -87,10 +89,18 @@
               <div class="chat-loader-text">Neural Chat</div>
               <div class="chat-loader-sub">Serverga ulanmoqda...</div>
             </div>
-            <div class="chat-head">
-              <div class="chat-head-left">
-                <button class="chat-toggle" id="chatToggle" title="Konversiyalar"></button>
-                <div class="chat-user" id="sidebarUser">
+
+            <!-- ===== CHAT LIST VIEW (Conversations) ===== -->
+            <div class="chat-list-view" id="chatListView">
+              <div class="chat-list-appbar">
+                <div class="chat-list-appbar-left">
+                  <span class="chat-list-title">Xabarlar</span>
+                </div>
+                <div class="chat-list-appbar-right">
+                </div>
+              </div>
+              <div class="chat-list-body">
+                <div class="chat-current-user" id="sidebarUser">
                   <div class="chat-user-avatar" id="sidebarAvatar">?</div>
                   <div class="chat-user-info">
                     <span class="chat-user-name" id="sidebarName">Yuklanmoqda...</span>
@@ -98,39 +108,43 @@
                   </div>
                   <button class="chat-edit-btn" id="editProfileBtn"></button>
                 </div>
-              </div>
-              <div class="chat-head-center">
-                <span class="chat-now-name" id="chatHeaderName">Xoleric Chat</span>
-                <span class="chat-now-meta" id="chatHeaderMeta">super chat</span>
-              </div>
-              <div class="chat-head-right">
-                <button class="chat-action-btn" id="createChannelBtn" title="Kanal yaratish"></button>
-                <button class="chat-action-btn" id="createGroupBtn" title="Guruh yaratish"></button>
-                <button class="chat-action-btn" id="createPrivateBtn" title="Shaxsiy chat"></button>
-                <span class="chat-online" id="onlineCount">0 online</span>
-              </div>
-            </div>
-            <div class="chat-body">
-              <div class="chat-convs-wrap" id="chatConvsWrap">
                 <div class="chat-convs" id="sidebarChats">
                   <div class="conv-empty">Yuklanmoqda...</div>
                 </div>
               </div>
-              <div class="chat-main">
-                <div class="chat-msgs" id="chatMessages">
-                  <div class="chat-empty">Konversiyani tanlang</div>
-                </div>
-                <div id="chatJoinArea" class="chat-join-area" style="display:none"></div>
-                <div class="chat-input-bar" id="chatInputArea" style="display:none">
-                  <button class="chat-media-btn" id="chatMediaBtn"></button>
-                  <div class="chat-preview" id="chatPreview" style="display:none">
-                    <img id="chatPreviewImg" /><button id="chatPreviewRemove"></button>
-                  </div>
-                  <textarea class="chat-input" id="chatInput" placeholder="Xabar yozing..." rows="1"></textarea>
-                  <button class="chat-send-btn" id="chatSendBtn"></button>
-                </div>
-                <input type="file" id="chatMediaInput" accept="image/*" />
+              <div class="chat-list-footer">
+                <span class="chat-online" id="onlineCount">0 online</span>
               </div>
+            </div>
+
+            <!-- ===== CHAT ROOM VIEW (Messages) ===== -->
+            <div class="chat-room-view" id="chatRoomView" style="display:none">
+              <div class="chat-room-appbar">
+                <button class="chat-back-btn" id="chatBackBtn" title="Orqaga"></button>
+                <div class="chat-room-user">
+                  <div class="chat-room-avatar" id="chatRoomAvatar">?</div>
+                  <div class="chat-room-info">
+                    <span class="chat-room-name" id="chatRoomName">Yuklanmoqda...</span>
+                    <span class="chat-room-status" id="chatRoomStatus">online</span>
+                  </div>
+                </div>
+                <div class="chat-room-actions">
+                  <button class="chat-action-btn chat-room-info-btn" id="chatRoomInfoBtn" title="Ma'lumot"></button>
+                </div>
+              </div>
+              <div class="chat-msgs" id="chatMessages">
+                <div class="chat-empty">Konversiyani tanlang</div>
+              </div>
+              <div id="chatJoinArea" class="chat-join-area" style="display:none"></div>
+              <div class="chat-input-bar" id="chatInputArea" style="display:none">
+                <button class="chat-media-btn" id="chatMediaBtn" title="Rasm yuborish"></button>
+                <button class="chat-voice-btn" id="chatVoiceBtn" title="Ovozli xabar"></button>
+                <div class="chat-input-wrap">
+                  <textarea class="chat-input" id="chatInput" placeholder="Xabar yozing..." rows="1"></textarea>
+                </div>
+                <button class="chat-send-btn" id="chatSendBtn"></button>
+              </div>
+              <input type="file" id="chatMediaInput" accept="image/*" />
             </div>
           </div>
         </div>
@@ -171,7 +185,8 @@
                           <button class="playme-btn" id="playmeVolumeIcon"></button>
                           <input type="range" class="playme-volume" id="playmeVolume" min="0" max="1" step="0.05" value="0.8" />
                         </div>
-                        <button class="playme-btn" id="playmeFullBtn"></button>
+                        <button class="playme-btn" id="playmePipBtn" title="PiP">⧉</button>
+                  <button class="playme-btn" id="playmeFullBtn"></button>
                       </div>
                     </div>
                   </div>
@@ -331,7 +346,28 @@
   </main>
 </div>
 
+<!-- ===== SETUP / PROFILE MODAL ===== -->
+<div class="modal-overlay" id="setupModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><h3>Profilingiz</h3></div>
+    <div class="modal-body">
+      <p class="modal-desc">Ismingizni kiriting va chatda qatnashing</p>
+      <div class="setup-avatar" id="setupAvatar">?</div>
+      <label class="setup-avatar-label">
+        <input type="file" id="setupAvatarInput" accept="image/*" />
+        Rasm yuklash
+      </label>
+      <input class="modal-input" id="setupName" placeholder="Ismingiz..." maxlength="30" />
+      <input class="modal-input" id="setupBio" placeholder="Bio (ixtiyoriy)" maxlength="80" />
+      <button class="modal-btn" id="setupSave">Davom etish</button>
+    </div>
+  </div>
+</div>
+
+
+
 <script src="js/db.js"></script>
+<script src="js/engine.js"></script>
 <script src="js/main.js"></script>
 <script src="js/chat.js"></script>
 <script src="js/repos.js"></script>

@@ -44,73 +44,14 @@ const MOTIVATION = [
   setInterval(sendQuote, 5 * 60 * 60 * 1000);
 })();
 
-const TABS = ['home','chat','playme','projects','contact','settings'];
-let currentTab = 0;
-let tabStack = [0];
-
-function navigateTo(idx, record) {
-  if (idx < 0 || idx >= TABS.length || idx === currentTab) return;
-  currentTab = idx;
-  const track = document.querySelector('.tabs-track');
-  if (track) track.style.transform = 'translateX(-' + (idx * 100) + '%)';
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === TABS[idx]));
-  document.querySelectorAll('.bn-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === TABS[idx]));
-  if (record) {
-    tabStack.push(idx);
-    history.pushState({ tab: idx }, '');
-  }
-}
+const TABS = XEngine.TABS;
 
 function switchTab(name) {
-  const idx = TABS.indexOf(name);
-  if (idx >= 0) navigateTo(idx, true);
+  XEngine.switchTab(name);
 }
 
-document.querySelectorAll('.nav-btn, .bn-btn').forEach(btn => {
-  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
-
-// Touch swipe (desktop — tab-area only, not bottom nav)
-(function() {
-  const ws = document.querySelector('.workspace');
-  if (!ws) return;
-  let sx = 0, dx = 0, dragging = false;
-  ws.addEventListener('touchstart', e => { sx = e.touches[0].clientX; dragging = true; }, { passive: true });
-  ws.addEventListener('touchmove', e => { if (dragging) dx = e.touches[0].clientX - sx; }, { passive: true });
-  ws.addEventListener('touchend', () => {
-    if (!dragging) return;
-    dragging = false;
-    if (Math.abs(dx) > 50) {
-      navigateTo(Math.max(0, Math.min(TABS.length - 1, currentTab + (dx < 0 ? 1 : -1))), true);
-    }
-    dx = 0;
-  });
-})();
-
-// Back button
-window.addEventListener('popstate', e => {
-  if (e.state && e.state.tab !== undefined && e.state.tab !== currentTab) {
-    navigateTo(e.state.tab, false);
-    return;
-  }
-  if (tabStack.length > 1) {
-    tabStack.pop();
-    const prev = tabStack[tabStack.length - 1];
-    history.replaceState({ tab: prev }, '');
-    navigateTo(prev, false);
-  }
-});
-
-window.addEventListener('load', () => {
-  const hash = location.hash.replace('#', '');
-  const start = (hash && TABS.includes(hash)) ? TABS.indexOf(hash) : 0;
-  currentTab = start;
-  tabStack = [start];
-  history.replaceState({ tab: start }, '');
-  const track = document.querySelector('.tabs-track');
-  if (track) track.style.transform = 'translateX(-' + (start * 100) + '%)';
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === TABS[start]));
-  document.querySelectorAll('.bn-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === TABS[start]));
+document.addEventListener('DOMContentLoaded', () => {
+  XEngine.init();
 });
 
 // Force-hide loading overlay after 10s (safety net)
@@ -180,59 +121,145 @@ document.addEventListener('click', e => {
   });
 })();
 
-// ===== CLOCK WIDGET =====
+// ===== UNIFIED CLOCK + CANVAS CLOCK + GLASS CALENDAR GRID (Memory-safe) =====
 (function() {
+  const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  const weekdays = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
   const timeEl = document.getElementById('clockTime');
   const dateEl = document.getElementById('clockDate');
   const monthEl = document.getElementById('calMonth');
   const dayEl = document.getElementById('calDay');
   const weekdayEl = document.getElementById('calWeekday');
   const yearEl = document.getElementById('calYear');
-  if (!timeEl) return;
-  const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
-  const weekdays = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
-  function update() {
+  const calGrid = document.getElementById('calGrid');
+
+  /* ---------- Canvas Clock (CustomPainter-style) ---------- */
+  const canvas = document.getElementById('canvasClock');
+  let canvasCtx = null;
+  let canvasAnimId = null;
+  if (canvas) {
+    canvasCtx = canvas.getContext('2d');
+    canvas.width = 120;
+    canvas.height = 120;
+  }
+
+  function drawCanvasClock(h, m, s) {
+    if (!canvasCtx) return;
+    const ctx = canvasCtx;
+    const cx = 60, cy = 60, r = 50;
+    ctx.clearRect(0, 0, 120, 120);
+
+    const hue = (h * 30 + m * 0.5) % 360;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.02)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(77,124,255,0.08)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    for (let i = 0; i < 12; i++) {
+      const a = (i * Math.PI * 2) / 12 - Math.PI / 2;
+      const len = i % 3 === 0 ? 8 : 4;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * (r - len), Math.sin(a) * (r - len));
+      ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+      ctx.strokeStyle = i % 3 === 0 ? 'rgba(77,124,255,0.3)' : 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = i % 3 === 0 ? 1.5 : 1;
+      ctx.stroke();
+    }
+
+    const hAngle = ((h % 12) * Math.PI * 2) / 12 + (m * Math.PI * 2) / 720 - Math.PI / 2;
+    const mAngle = (m * Math.PI * 2) / 60 - Math.PI / 2;
+    const sAngle = (s * Math.PI * 2) / 60 - Math.PI / 2;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(hAngle) * (r * 0.55), Math.sin(hAngle) * (r * 0.55));
+    ctx.strokeStyle = 'hsla(' + hue + ', 70%, 60%, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(mAngle) * (r * 0.7), Math.sin(mAngle) * (r * 0.7));
+    ctx.strokeStyle = 'hsla(' + hue + ', 60%, 65%, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(sAngle) * (r * 0.75), Math.sin(sAngle) * (r * 0.75));
+    ctx.strokeStyle = 'hsla(0, 0%, 100%, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(77,124,255,0.4)';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /* ---------- Calendar Grid ---------- */
+  function renderCalendarGrid(year, month) {
+    if (!calGrid) return;
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    let html = '';
+    for (let i = 0; i < firstDay; i++) {
+      html += '<span class="cal-other"></span>';
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      html += '<span' + (isToday ? ' class="cal-today"' : '') + '>' + d + '</span>';
+    }
+    calGrid.innerHTML = html;
+  }
+
+  /* ---------- Unified update ---------- */
+  let lastMinute = -1;
+  let tick = 0;
+
+  function updateClock() {
+    tick++;
     const d = new Date();
-    timeEl.textContent = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-    if (dateEl) dateEl.textContent = d.toLocaleDateString('uz-UZ', { day:'numeric', month:'long' });
+    const h = d.getHours();
+    const m = d.getMinutes();
+    const s = d.getSeconds();
+    const timeStr = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+
+    if (timeEl) timeEl.textContent = timeStr;
+    if (dateEl) dateEl.textContent = d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' });
     if (monthEl) monthEl.textContent = months[d.getMonth()];
     if (dayEl) dayEl.textContent = d.getDate();
     if (weekdayEl) weekdayEl.textContent = weekdays[d.getDay()];
     if (yearEl) yearEl.textContent = d.getFullYear();
-  }
-  update();
-  setInterval(update, 1000);
-})();
 
-// ===== CLOCK & CALENDAR =====
-(function() {
-  const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
-  const weekdays = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+    if (canvasCtx && tick % 2 === 0) {
+      drawCanvasClock(h, m, s);
+    }
 
-  function updateClock() {
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2, '0');
-    const m = String(now.getMinutes()).padStart(2, '0');
-    const timeEl = document.getElementById('clockTime');
-    if (timeEl) timeEl.textContent = h + ':' + m;
+    if (m !== lastMinute) {
+      lastMinute = m;
+      renderCalendarGrid(d.getFullYear(), d.getMonth());
+    }
   }
+
   updateClock();
-  setInterval(updateClock, 1000);
+  let clockInterval = setInterval(updateClock, 1000);
 
-  const now = new Date();
-  const dayEl = document.getElementById('calDay');
-  const monthEl = document.getElementById('calMonth');
-  const weekdayEl = document.getElementById('calWeekday');
-  const yearEl = document.getElementById('calYear');
-  if (dayEl) dayEl.textContent = now.getDate();
-  if (monthEl) monthEl.textContent = months[now.getMonth()];
-  if (weekdayEl) weekdayEl.textContent = weekdays[now.getDay()];
-  if (yearEl) yearEl.textContent = now.getFullYear();
-
-  const dateEl = document.getElementById('clockDate');
-  if (dateEl) {
-    dateEl.textContent = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
-  }
+  /* ---------- Cleanup on page unload (memory leak prevention) ---------- */
+  window.addEventListener('beforeunload', () => {
+    clearInterval(clockInterval);
+    if (canvasAnimId) cancelAnimationFrame(canvasAnimId);
+  });
 })();
 
 // ===== MOTIVATION QUOTES ROTATION =====
