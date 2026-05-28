@@ -213,11 +213,17 @@
                 if (!manualPause) startRetry()
                 updateToggle()
               } else if (state === 0) {
-                stopTimeTick()
+                stopTimeTick(); updateToggle()
+                if (manualPause) return
                 setTimeout(function () {
-                  if (ytPlayer && !manualPause) try { ytPlayer.playVideo() } catch (ex) {}
-                }, 600)
-                updateToggle()
+                  if (!ytPlayer || manualPause) return
+                  var grid = $('vpGrid')
+                  if (!grid) return
+                  var act = grid.querySelector('.vp-card.active')
+                  var next = act ? act.nextElementSibling : null
+                  while (next && !next.classList.contains('vp-card')) next = next.nextElementSibling
+                  if (next && next.dataset.id) play(next.dataset.id)
+                }, 800)
               }
             }
           }
