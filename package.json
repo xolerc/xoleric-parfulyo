@@ -1,0 +1,29 @@
+{
+  "name": "xoleric",
+  "version": "2.5.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui"
+  },
+  "keywords": [
+    "xoleric",
+    "portfolio"
+  ],
+  "author": "Xoleric",
+  "license": "MIT",
+  "description": "XOLERIC — Namanganlik dasturchi portfolio",
+  "dependencies": {
+    "firebase": "^10.14.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14"
+  }
+}

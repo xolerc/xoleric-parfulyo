@@ -1,3 +1,14 @@
 .DS_Store
 *.log
 node_modules/
+.env
+.env.local
+dist/
+test-results/
+*.mp4
+*.webm
+*.wav
+Thumbs.db
+*.swp
+*.swo
+*~
