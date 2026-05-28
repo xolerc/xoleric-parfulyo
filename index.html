@@ -200,17 +200,29 @@
               </div>
             </div>
             <div class="vp-player" id="vpPlayer" style="display:none">
-              <div class="vp-player-vid" id="vpPlayerVid"></div>
+              <div class="vp-player-vid" id="vpPlayerVid">
+                <div class="vp-player-vid-overlay" id="vpPlayerOverlay">
+                  <span class="vp-vid-time" id="vpVidTime">0:00 / 0:00</span>
+                </div>
+              </div>
               <div class="vp-player-info">
-                <button class="vp-player-toggle" id="vpPlayerToggle">⏸</button>
+                <button class="vp-player-toggle" id="vpPlayerToggle" title="Play/Pause">⏸</button>
                 <button class="vp-player-nav" id="vpPlayerPrev" title="Oldingi">⏮</button>
                 <button class="vp-player-nav" id="vpPlayerNext" title="Keyingi">⏭</button>
                 <div class="vp-player-text">
                   <div class="vp-player-title" id="vpPlayerTitle"></div>
                   <div class="vp-player-sub" id="vpPlayerSub"></div>
                 </div>
+                <div class="vp-vol-wrap" id="vpVolWrap">
+                  <button class="vp-vol-btn" id="vpVolBtn">🔊</button>
+                  <input class="vp-vol-slider" id="vpVolSlider" type="range" min="0" max="100" value="100" />
+                </div>
+                <button class="vp-speed-btn" id="vpSpeedBtn" title="Tezlik">1x</button>
+                <button class="vp-quality-btn" id="vpQualityBtn" title="Sifat">HD</button>
+                <button class="vp-minimize-btn" id="vpMinimizeBtn" title="Yig'ish">🗕</button>
                 <button class="vp-player-x" id="vpPlayerX">✕</button>
               </div>
+              <div class="vp-qual-menu" id="vpQualMenu" style="display:none"></div>
             </div>
             <div class="vp-body">
               <div class="vp-chips" id="vpChips"></div>
@@ -220,6 +232,10 @@
                   <span>Yuklanmoqda...</span>
                 </div>
                 <div class="vp-grid" id="vpGrid"></div>
+                <div class="vp-grid-skeleton" id="vpGridSkel" style="display:none"></div>
+                <div class="vp-load-more" id="vpLoadMore" style="display:none">
+                  <button class="vp-load-more-btn" id="vpLoadMoreBtn">Ko'proq yuklash</button>
+                </div>
                 <div class="vp-none" id="vpNone" style="display:none">
                   <span class="vp-none-icon">🎬</span>
                   <span>Video topilmadi</span>
@@ -228,6 +244,13 @@
                   <span class="vp-err-icon">⚠️</span>
                   <span class="vp-err-txt">Xatolik yuz berdi</span>
                   <span class="vp-err-desc" id="vpErrDesc">Keyinroq urinib ko'ring.</span>
+                </div>
+                <div class="vp-history" id="vpHistory" style="display:none">
+                  <div class="vp-history-head">
+                    <span class="vp-history-title">📋 Ko'rilgan videolar</span>
+                    <button class="vp-history-clear" id="vpHistoryClear">Tozalash</button>
+                  </div>
+                  <div class="vp-history-list" id="vpHistoryList"></div>
                 </div>
               </div>
             </div>
