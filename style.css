@@ -3008,12 +3008,13 @@ body {
     border-radius: 0;
   }
   .chat-room-view {
-    position: fixed; inset: 0; z-index: 101;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 101;
     background: rgba(10,14,23,0.98);
     animation: slideInRight 0.25s ease;
   }
-  .chat-msgs { padding: 6px 8px; gap: 3px; }
-  .chat-input-bar { padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 16px)); gap: 4px; }
+  .chat-msgs { padding: 6px 8px 6px; gap: 3px; }
+  .chat-input-bar { padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); gap: 6px; }
   .chat-list-appbar { padding: 10px 12px; min-height: 48px; }
   .chat-current-user { padding: 10px 12px; }
   .chat-user-avatar { width: 36px; height: 36px; font-size: 13px; }
