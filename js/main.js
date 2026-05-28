@@ -260,46 +260,6 @@
     }
   }
 
-  function initWidgetStats() {
-    async function update() {
-      try {
-        var stats = await DB.getStats()
-        var el = document.getElementById('wsVisits'); if (el) el.textContent = (stats.visits || 0).toLocaleString()
-      } catch (e) {}
-      var onl = document.getElementById('onlineCount')
-      if (onl) { var el2 = document.getElementById('wsOnline'); if (el2) el2.textContent = onl.textContent.split(' ')[0] || '0' }
-    }
-    update()
-    setInterval(update, 30000)
-  }
-
-  function initWidgetWeather() {
-    var temp = document.getElementById('weatherTemp'), desc = document.getElementById('weatherDesc')
-    if (!temp || !desc) return
-    var weatherData = [
-      { t: 28, d: { uz: 'Quyoshli', en: 'Sunny', ru: 'Солнечно' } },
-      { t: 22, d: { uz: 'Bulutli', en: 'Cloudy', ru: 'Облачно' } },
-      { t: 18, d: { uz: 'Yomg\'ir', en: 'Rainy', ru: 'Дождливо' } },
-    ]
-    var w = weatherData[Math.floor(Math.random() * weatherData.length)]
-    temp.textContent = w.t + '°'
-    var lang = localStorage.getItem('xolerc_lang') || 'uz'
-    desc.textContent = w.d[lang] || w.d.uz
-  }
-
-  function initWidgetMusic() {
-    var btn = document.getElementById('homeMusicBtn'), title = document.getElementById('homeMusicTitle'), status = document.getElementById('homeMusicStatus')
-    if (!btn) return
-    function sync() {
-      var mt = document.getElementById('musicToggle')
-      if (mt && mt.classList.contains('playing')) { btn.textContent = '⏸'; if (title) title.textContent = '🎵 XOLERIC'; if (status) status.textContent = 'Ijro etilmoqda' }
-      else { btn.textContent = '▶'; if (title) title.textContent = 'Musiqa dam olish'; if (status) status.textContent = "To'xtatilgan" }
-    }
-    document.addEventListener('musicStateChange', sync)
-    btn.addEventListener('click', function () { var mt = document.getElementById('musicToggle'); if (mt) mt.click(); setTimeout(sync, 50) })
-    sync()
-  }
-
   function initCheatsheet() {
     var overlay = null
     function show() {
@@ -353,8 +313,7 @@
       { fn: initClock, name: 'Clock' }, { fn: initQuotes, name: 'Quotes' },
       { fn: initTheme, name: 'Theme' }, { fn: initLang, name: 'Lang' },
       { fn: initSettings, name: 'Settings' },
-      { fn: initWidgetStats, name: 'WidgetStats' }, { fn: initWidgetWeather, name: 'WidgetWeather' },
-      { fn: initWidgetMusic, name: 'WidgetMusic' }, { fn: initCheatsheet, name: 'Cheatsheet' }
+      { fn: initCheatsheet, name: 'Cheatsheet' }
     ]
     for (var i = 0; i < inits.length; i++) { try { inits[i].fn() } catch (e) { console.error(inits[i].name + ' init error:', e) } }
 
