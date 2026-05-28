@@ -16,8 +16,21 @@
     { file: V_PATH + '/2_5462948497839910298.mp4', title: 'Video 12' }
   ]
   var VID = 'playme-main'
+  var STORAGE_KEY = 'xolerc_playlist'
 
   function fmt(s) { if (!s || !isFinite(s)) return '0:00'; var m = Math.floor(s / 60), sec = Math.floor(s % 60); return m + ':' + (sec < 10 ? '0' : '') + sec }
+
+  function savePlaylist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(VIDEOS)) } catch (e) {}
+  }
+
+  function loadPlaylist() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) { var parsed = JSON.parse(raw); if (Array.isArray(parsed) && parsed.length) { VIDEOS.length = 0; parsed.forEach(function (v) { VIDEOS.push(v) }); return true } }
+    } catch (e) {}
+    return false
+  }
 
   window.initPlayme = function () {
     var video = document.getElementById('playmeVideo')
@@ -38,10 +51,16 @@
     var loader = document.getElementById('playmeLoader')
     var controls = document.getElementById('playmeControls')
     var wrap = document.getElementById('playmeWrap')
+    var saveBtn = document.getElementById('playmeSaveBtn')
+    var loadBtn = document.getElementById('playmeLoadBtn')
+    var subBtn = document.getElementById('playmeSubBtn')
+    var subInput = document.getElementById('playmeSubInput')
+    var subLabel = document.getElementById('playmeSubLabel')
     if (!video) return
 
     window.controller.register(VID, video)
-    var ci = 0, pd = false, ct = null, durs = {}, preloaded = false
+    loadPlaylist()
+    var ci = 0, pd = false, ct = null, durs = {}, preloaded = false, dragIdx = null
 
     function showCtrl() {
       controls.classList.add('visible')
@@ -65,19 +84,60 @@
       renderList()
     }
 
+    function getDur(i) { return durs[i] !== undefined ? fmt(durs[i]) : '' }
+
     function renderList() {
       list.innerHTML = VIDEOS.map(function (v, i) {
-        var dur = durs[i] !== undefined ? fmt(durs[i]) : ''
-        return '<div class="playme-item' + (i === ci ? ' active' : '') + '" data-index="' + i + '">' +
+        return '<div class="playme-item' + (i === ci ? ' active' : '') + '" data-index="' + i + '" draggable="true">' +
+          '<div class="playme-item-drag" data-index="' + i + '">⠿</div>' +
           '<div class="playme-item-thumb"><span class="playme-item-num">' + String(i + 1).padStart(2, '0') + '</span></div>' +
           '<div class="playme-item-body"><span class="playme-item-title">' + v.title + '</span>' +
-          (dur ? '<div class="playme-item-duration">' + dur + '</div>' : '') + '</div></div>'
+          (getDur(i) ? '<div class="playme-item-duration">' + getDur(i) + '</div>' : '') + '</div></div>'
       }).join('')
       list.querySelectorAll('.playme-item').forEach(function (el) {
-        el.addEventListener('click', function () { playVideo(parseInt(el.dataset.index, 10)) })
+        el.addEventListener('click', function (e) { if (e.target.closest('.playme-item-drag')) return; playVideo(parseInt(el.dataset.index, 10)) })
       })
       var act = list.querySelector('.playme-item.active')
       if (act) act.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      initDragDrop()
+    }
+
+    /* Drag‑drop reorder */
+    function initDragDrop() {
+      var items = list.querySelectorAll('.playme-item')
+      items.forEach(function (item) {
+        item.addEventListener('dragstart', function (e) {
+          dragIdx = parseInt(item.dataset.index, 10)
+          item.classList.add('dragging')
+          e.dataTransfer.effectAllowed = 'move'
+          e.dataTransfer.setData('text/plain', dragIdx)
+        })
+        item.addEventListener('dragend', function () { item.classList.remove('dragging'); dragIdx = null })
+        item.addEventListener('dragover', function (e) {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+          var overIdx = parseInt(item.dataset.index, 10)
+          if (overIdx === dragIdx) return
+          var rect = item.getBoundingClientRect()
+          var after = e.clientY > rect.top + rect.height / 2
+          item.style.borderTop = !after ? '2px solid var(--accent)' : ''
+          item.style.borderBottom = after ? '2px solid var(--accent)' : ''
+        })
+        item.addEventListener('dragleave', function () { item.style.borderTop = ''; item.style.borderBottom = '' })
+        item.addEventListener('drop', function (e) {
+          e.preventDefault()
+          item.style.borderTop = ''; item.style.borderBottom = ''
+          var from = dragIdx; var to = parseInt(item.dataset.index, 10)
+          if (from === null || from === to) return
+          var moved = VIDEOS.splice(from, 1)[0]
+          VIDEOS.splice(to, 0, moved)
+          if (ci === from) ci = to
+          else if (ci > from && ci <= to) ci--
+          else if (ci < from && ci >= to) ci++
+          savePlaylist()
+          renderList()
+        })
+      })
     }
 
     playBtn.addEventListener('click', function () { if (video.paused) window.controller.play(VID); else window.controller.pause(VID) })
@@ -136,6 +196,42 @@
       var l = document.createElement('link'); l.rel = 'preload'; l.as = 'video'; l.href = VIDEOS[ni].file; document.head.appendChild(l)
     }
 
+    /* Save/Load playlist */
+    if (saveBtn) saveBtn.addEventListener('click', function () { savePlaylist(); saveBtn.textContent = '✅'; setTimeout(function () { saveBtn.textContent = '💾' }, 1500) })
+    if (loadBtn) loadBtn.addEventListener('click', function () {
+      if (loadPlaylist()) { ci = 0; renderList(); playVideo(0); loadBtn.textContent = '✅'; setTimeout(function () { loadBtn.textContent = '📂' }, 1500) }
+      else { loadBtn.textContent = '❌'; setTimeout(function () { loadBtn.textContent = '📂' }, 1500) }
+    })
+
+    /* Subtitle support */
+    if (subBtn && subInput) {
+      subBtn.addEventListener('click', function () { subInput.click() })
+      subInput.addEventListener('change', function () {
+        var file = subInput.files[0]
+        if (!file) return
+        var reader = new FileReader()
+        reader.onload = function (e) {
+          var content = e.target.result
+          var oldTrack = video.querySelector('track')
+          if (oldTrack) oldTrack.remove()
+          /* SRT → VTT conversion */
+          if (file.name.endsWith('.srt')) { content = 'WEBVTT\n\n' + content.replace(/\r\n/g, '\n').replace(/(\d{2}):(\d{2}):(\d{2}),(\d{3})/g, '$1:$2:$3.$4') }
+          var blob = new Blob([content], { type: 'text/vtt' })
+          var track = document.createElement('track')
+          track.kind = 'subtitles'
+          track.label = 'Subtitr'
+          track.srclang = 'uz'
+          track.src = URL.createObjectURL(blob)
+          track.default = true
+          video.appendChild(track)
+          subBtn.textContent = '✅'
+          setTimeout(function () { subBtn.textContent = '📄' }, 1500)
+        }
+        reader.readAsText(file)
+      })
+    }
+
+    /* Load metadata for all videos */
     ;(function preloadFirstMeta() {
       var tmp = document.createElement('video'); tmp.preload = 'metadata'; tmp.src = VIDEOS[0].file
       tmp.addEventListener('loadedmetadata', function () { durs[0] = tmp.duration; renderList(); tmp.remove() })

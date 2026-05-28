@@ -185,9 +185,9 @@
   }
 
   var LANG = {
-    uz: { 'nav.home': 'Ish maydoni', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Pleer', 'nav.projects': 'Loyihalar', 'nav.settings': 'Sozlamalar', 'bn.home': 'Asosiy', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Pleer', 'bn.projects': 'Loyihalar', 'bn.settings': 'Sozlamalar', 'hero.badge': 'DASTURCHI • DIZAYNER • MUHANDIS', 'hero.desc': 'Frontend arxitektori. Tizimlar quruvchi. Interfeyslar yaratuvchi.', 'hero.projects': 'Loyihalar', 'hero.chat': 'Chat', 'hero.contact': 'Aloqa', 'chat.title': 'Xabarlar', 'chat.online': 'online', 'chat.loading': 'Xabarlar yuklanmoqda...', 'playme.title': 'Pleer', 'playme.desc': 'Video darsliklar to\'plami', 'playme.list': 'Pleer ro\'yxati', 'projects.title': 'Loyihalar', 'projects.desc': 'GitHub\'dagi barcha ochiq manbali loyihalar', 'projects.search': 'Loyihalarni qidirish...', 'contact.title': 'Aloqa', 'contact.desc': 'Loyihalar va hamkorlik uchun', 'settings.title': 'Sozlamalar', 'settings.desc': 'Ilova sozlamalari va yuklamalar', 'settings.theme': 'Interfeys temasi', 'settings.theme.desc': 'Ilova ko\'rinishini o\'zingizga moslang', 'settings.notif': 'Bildirishnomalar', 'settings.notif_sound': 'Xabar ovozi', 'settings.dnd': 'Menga yozmaslik', 'settings.cache': 'Keshni tozalash', 'settings.cache.clear': 'Tozalash', 'settings.lang': 'Til', 'loader.text': 'Tizim yuklanmoqda...', 'chat.empty': 'Xabarlar yo\'q', 'chat.input': 'Xabar yozing...', 'chat.main': 'Umumiy Chat', 'chat.main.sub': 'Barcha xabarlar' },
-    en: { 'nav.home': 'Workspace', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Player', 'nav.projects': 'Projects', 'nav.settings': 'Settings', 'bn.home': 'Home', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Player', 'bn.projects': 'Projects', 'bn.settings': 'Settings', 'hero.badge': 'DEVELOPER • DESIGNER • ENGINEER', 'hero.desc': 'Frontend architect. System builder. Interface creator.', 'hero.projects': 'Projects', 'hero.chat': 'Chat', 'hero.contact': 'Contact', 'chat.title': 'Messages', 'chat.online': 'online', 'chat.loading': 'Loading messages...', 'playme.title': 'Player', 'playme.desc': 'Video tutorial collection', 'playme.list': 'Playlist', 'projects.title': 'Projects', 'projects.desc': 'All open-source projects on GitHub', 'projects.search': 'Search projects...', 'contact.title': 'Contact', 'contact.desc': 'For projects and collaboration', 'settings.title': 'Settings', 'settings.desc': 'App settings and downloads', 'settings.theme': 'Theme', 'settings.theme.desc': 'Customize the app appearance', 'settings.notif': 'Notifications', 'settings.notif_sound': 'Message sound', 'settings.dnd': 'Do not disturb', 'settings.cache': 'Clear cache', 'settings.cache.clear': 'Clear', 'settings.lang': 'Language', 'loader.text': 'Loading system...', 'chat.empty': 'No messages', 'chat.input': 'Write a message...', 'chat.main': 'General Chat', 'chat.main.sub': 'All messages' },
-    ru: { 'nav.home': 'Рабочее место', 'nav.chat': 'Чат', 'nav.video': 'Видео', 'nav.playme': 'Плеер', 'nav.projects': 'Проекты', 'nav.settings': 'Настройки', 'bn.home': 'Главная', 'bn.chat': 'Чат', 'bn.video': 'Видео', 'bn.playme': 'Плеер', 'bn.projects': 'Проекты', 'bn.settings': 'Настройки', 'hero.badge': 'РАЗРАБОТЧИК • ДИЗАЙНЕР • ИНЖЕНЕР', 'hero.desc': 'Фронтенд-архитектор. Строитель систем. Создатель интерфейсов.', 'hero.projects': 'Проекты', 'hero.chat': 'Чат', 'hero.contact': 'Контакты', 'chat.title': 'Сообщения', 'chat.online': 'онлайн', 'chat.loading': 'Загрузка сообщений...', 'playme.title': 'Плеер', 'playme.desc': 'Коллекция видеоуроков', 'playme.list': 'Плейлист', 'projects.title': 'Проекты', 'projects.desc': 'Все открытые проекты на GitHub', 'projects.search': 'Поиск проектов...', 'contact.title': 'Контакты', 'contact.desc': 'Для проектов и сотрудничества', 'settings.title': 'Настройки', 'settings.desc': 'Настройки приложения и загрузки', 'settings.theme': 'Тема', 'settings.theme.desc': 'Настройте внешний вид приложения', 'settings.notif': 'Уведомления', 'settings.notif_sound': 'Звук сообщения', 'settings.dnd': 'Не беспокоить', 'settings.cache': 'Очистить кеш', 'settings.cache.clear': 'Очистить', 'settings.lang': 'Язык', 'loader.text': 'Загрузка системы...', 'chat.empty': 'Нет сообщений', 'chat.input': 'Напишите сообщение...', 'chat.main': 'Общий чат', 'chat.main.sub': 'Все сообщения' }
+    uz: { 'nav.home': 'Ish maydoni', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Pleer', 'nav.projects': 'Loyihalar', 'nav.settings': 'Sozlamalar', 'bn.home': 'Asosiy', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Pleer', 'bn.projects': 'Loyihalar', 'bn.settings': 'Sozlamalar', 'hero.badge': 'DASTURCHI • DIZAYNER • MUHANDIS', 'hero.desc': 'Frontend arxitektori. Tizimlar quruvchi. Interfeyslar yaratuvchi.', 'hero.projects': 'Loyihalar', 'hero.chat': 'Chat', 'hero.contact': 'Aloqa', 'chat.title': 'Xabarlar', 'chat.online': 'online', 'chat.loading': 'Xabarlar yuklanmoqda...', 'playme.title': 'Pleer', 'playme.desc': 'Video darsliklar to\'plami', 'playme.list': 'Pleer ro\'yxati', 'projects.title': 'Loyihalar', 'projects.desc': 'GitHub\'dagi barcha ochiq manbali loyihalar', 'projects.search': 'Loyihalarni qidirish...', 'contact.title': 'Aloqa', 'contact.desc': 'Loyihalar va hamkorlik uchun', 'settings.title': 'Sozlamalar', 'settings.desc': 'Ilova sozlamalari va yuklamalar', 'settings.theme': 'Interfeys temasi', 'settings.theme.desc': 'Ilova ko\'rinishini o\'zingizga moslang', 'settings.notif': 'Bildirishnomalar', 'settings.notif_sound': 'Xabar ovozi', 'settings.dnd': 'Menga yozmaslik', 'settings.cache': 'Keshni tozalash', 'settings.cache.clear': 'Tozalash', 'settings.lang': 'Til', 'settings.export': "Ma'lumotlarni eksport qilish", 'loader.text': 'Tizim yuklanmoqda...', 'chat.empty': 'Xabarlar yo\'q', 'chat.input': 'Xabar yozing...', 'chat.main': 'Umumiy Chat', 'chat.main.sub': 'Barcha xabarlar' },
+    en: { 'nav.home': 'Workspace', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Player', 'nav.projects': 'Projects', 'nav.settings': 'Settings', 'bn.home': 'Home', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Player', 'bn.projects': 'Projects', 'bn.settings': 'Settings', 'hero.badge': 'DEVELOPER • DESIGNER • ENGINEER', 'hero.desc': 'Frontend architect. System builder. Interface creator.', 'hero.projects': 'Projects', 'hero.chat': 'Chat', 'hero.contact': 'Contact', 'chat.title': 'Messages', 'chat.online': 'online', 'chat.loading': 'Loading messages...', 'playme.title': 'Player', 'playme.desc': 'Video tutorial collection', 'playme.list': 'Playlist', 'projects.title': 'Projects', 'projects.desc': 'All open-source projects on GitHub', 'projects.search': 'Search projects...', 'contact.title': 'Contact', 'contact.desc': 'For projects and collaboration', 'settings.title': 'Settings', 'settings.desc': 'App settings and downloads', 'settings.theme': 'Theme', 'settings.theme.desc': 'Customize the app appearance', 'settings.notif': 'Notifications', 'settings.notif_sound': 'Message sound', 'settings.dnd': 'Do not disturb', 'settings.cache': 'Clear cache', 'settings.cache.clear': 'Clear', 'settings.lang': 'Language', 'settings.export': 'Export data', 'loader.text': 'Loading system...', 'chat.empty': 'No messages', 'chat.input': 'Write a message...', 'chat.main': 'General Chat', 'chat.main.sub': 'All messages' },
+    ru: { 'nav.home': 'Рабочее место', 'nav.chat': 'Чат', 'nav.video': 'Видео', 'nav.playme': 'Плеер', 'nav.projects': 'Проекты', 'nav.settings': 'Настройки', 'bn.home': 'Главная', 'bn.chat': 'Чат', 'bn.video': 'Видео', 'bn.playme': 'Плеер', 'bn.projects': 'Проекты', 'bn.settings': 'Настройки', 'hero.badge': 'РАЗРАБОТЧИК • ДИЗАЙНЕР • ИНЖЕНЕР', 'hero.desc': 'Фронтенд-архитектор. Строитель систем. Создатель интерфейсов.', 'hero.projects': 'Проекты', 'hero.chat': 'Чат', 'hero.contact': 'Контакты', 'chat.title': 'Сообщения', 'chat.online': 'онлайн', 'chat.loading': 'Загрузка сообщений...', 'playme.title': 'Плеер', 'playme.desc': 'Коллекция видеоуроков', 'playme.list': 'Плейлист', 'projects.title': 'Проекты', 'projects.desc': 'Все открытые проекты на GitHub', 'projects.search': 'Поиск проектов...', 'contact.title': 'Контакты', 'contact.desc': 'Для проектов и сотрудничества', 'settings.title': 'Настройки', 'settings.desc': 'Настройки приложения и загрузки', 'settings.theme': 'Тема', 'settings.theme.desc': 'Настройте внешний вид приложения', 'settings.notif': 'Уведомления', 'settings.notif_sound': 'Звук сообщения', 'settings.dnd': 'Не беспокоить', 'settings.cache': 'Очистить кеш', 'settings.cache.clear': 'Очистить', 'settings.lang': 'Язык', 'settings.export': 'Экспорт данных', 'loader.text': 'Загрузка системы...', 'chat.empty': 'Нет сообщений', 'chat.input': 'Напишите сообщение...', 'chat.main': 'Общий чат', 'chat.main.sub': 'Все сообщения' }
   }
 
   window.applyLanguage = function (lang) {
@@ -232,6 +232,98 @@
       ls.value = localStorage.getItem('xolerc_lang') || 'uz'
       ls.addEventListener('change', function () { localStorage.setItem('xolerc_lang', this.value); window.applyLanguage(this.value) })
     }
+    var exportBtn = document.getElementById('exportDataBtn')
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function () {
+        var data = {
+          exported: new Date().toISOString(),
+          settings: {},
+          playlist: null,
+          videoHistory: null,
+          chatHistory: null
+        }
+        data.settings.lang = localStorage.getItem('xolerc_lang') || 'uz'
+        data.settings.theme = localStorage.getItem('xolerc_theme') || 'dark'
+        data.settings.notif = localStorage.getItem('xolerc_notif') || 'on'
+        data.settings.notifSound = localStorage.getItem('xolerc_notif_sound') || 'on'
+        data.settings.dnd = localStorage.getItem('xolerc_dnd') || 'off'
+        try { data.videoHistory = JSON.parse(localStorage.getItem('vp_hist') || '[]') } catch (e) {}
+        try { data.playlist = JSON.parse(localStorage.getItem('xolerc_playlist')) } catch (e) {}
+        try { data.chatHistory = JSON.parse(localStorage.getItem('xolerc_chat_hist') || '[]') } catch (e) {}
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+        var url = URL.createObjectURL(blob)
+        var a = document.createElement('a'); a.href = url; a.download = 'xoleric-export-' + new Date().toISOString().slice(0, 10) + '.json'; a.click()
+        URL.revokeObjectURL(url)
+        exportBtn.textContent = '✅ Yuklandi'
+        setTimeout(function () { exportBtn.textContent = '📥 Yuklab olish' }, 2000)
+      })
+    }
+  }
+
+  function initWidgetStats() {
+    async function update() {
+      try {
+        var stats = await DB.getStats()
+        var el = document.getElementById('wsVisits'); if (el) el.textContent = (stats.visits || 0).toLocaleString()
+      } catch (e) {}
+      var onl = document.getElementById('onlineCount')
+      if (onl) { var el2 = document.getElementById('wsOnline'); if (el2) el2.textContent = onl.textContent.split(' ')[0] || '0' }
+    }
+    update()
+    setInterval(update, 30000)
+  }
+
+  function initWidgetWeather() {
+    var temp = document.getElementById('weatherTemp'), desc = document.getElementById('weatherDesc')
+    if (!temp || !desc) return
+    var weatherData = [
+      { t: 28, d: { uz: 'Quyoshli', en: 'Sunny', ru: 'Солнечно' } },
+      { t: 22, d: { uz: 'Bulutli', en: 'Cloudy', ru: 'Облачно' } },
+      { t: 18, d: { uz: 'Yomg\'ir', en: 'Rainy', ru: 'Дождливо' } },
+    ]
+    var w = weatherData[Math.floor(Math.random() * weatherData.length)]
+    temp.textContent = w.t + '°'
+    var lang = localStorage.getItem('xolerc_lang') || 'uz'
+    desc.textContent = w.d[lang] || w.d.uz
+  }
+
+  function initWidgetMusic() {
+    var btn = document.getElementById('homeMusicBtn'), title = document.getElementById('homeMusicTitle'), status = document.getElementById('homeMusicStatus')
+    if (!btn) return
+    function sync() {
+      var mt = document.getElementById('musicToggle')
+      if (mt && mt.classList.contains('playing')) { btn.textContent = '⏸'; if (title) title.textContent = '🎵 XOLERIC'; if (status) status.textContent = 'Ijro etilmoqda' }
+      else { btn.textContent = '▶'; if (title) title.textContent = 'Musiqa dam olish'; if (status) status.textContent = "To'xtatilgan" }
+    }
+    document.addEventListener('musicStateChange', sync)
+    btn.addEventListener('click', function () { var mt = document.getElementById('musicToggle'); if (mt) mt.click(); setTimeout(sync, 50) })
+    sync()
+  }
+
+  function initCheatsheet() {
+    var overlay = null
+    function show() {
+      if (overlay) { overlay.remove(); overlay = null; return }
+      overlay = document.createElement('div')
+      overlay.className = 'modal-overlay'
+      overlay.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:2000'
+      overlay.innerHTML = '<div class="cheatsheet-modal" style="background:var(--bg1);border-radius:16px;padding:24px;width:90vw;max-width:450px;max-height:80vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin:0;font-size:16px">⌨ Klaviatura yorliqlari</h3><button id="cheatsheetClose" style="border:none;background:var(--bg2);color:var(--text);width:28px;height:28px;border-radius:50%;cursor:pointer">✕</button></div><div class="cheatsheet-grid" style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:13px">' +
+        '<span class="cs-key">Space</span><span>Video: play/pause</span>' +
+        '<span class="cs-key">← →</span><span>Video: oldingi/keyingi</span>' +
+        '<span class="cs-key">Esc</span><span>Video yopish / modal yopish</span>' +
+        '<span class="cs-key">M</span><span>Video: ovoz o\'chirish</span>' +
+        '<span class="cs-key">F</span><span>Video: fullscreen</span>' +
+        '<span class="cs-key">Enter</span><span>Chat: xabar yuborish</span>' +
+        '<span class="cs-key">/</span><span>Chat: qidirish</span>' +
+        '<span class="cs-key">?</span><span>Ushbu yorliqlarni ko\'rsatish</span>' +
+        '</div></div>'
+      document.body.appendChild(overlay)
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) { overlay.remove(); overlay = null } })
+      document.getElementById('cheatsheetClose').addEventListener('click', function () { overlay.remove(); overlay = null })
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === '?' && !e.target.closest('input,textarea')) { e.preventDefault(); show() }
+    })
   }
 
   window.initLoadingOverlay = function () {
@@ -260,7 +352,9 @@
       { fn: initLoadingOverlay, name: 'Loading' }, { fn: initCanvas, name: 'Canvas' },
       { fn: initClock, name: 'Clock' }, { fn: initQuotes, name: 'Quotes' },
       { fn: initTheme, name: 'Theme' }, { fn: initLang, name: 'Lang' },
-      { fn: initSettings, name: 'Settings' }
+      { fn: initSettings, name: 'Settings' },
+      { fn: initWidgetStats, name: 'WidgetStats' }, { fn: initWidgetWeather, name: 'WidgetWeather' },
+      { fn: initWidgetMusic, name: 'WidgetMusic' }, { fn: initCheatsheet, name: 'Cheatsheet' }
     ]
     for (var i = 0; i < inits.length; i++) { try { inits[i].fn() } catch (e) { console.error(inits[i].name + ' init error:', e) } }
 

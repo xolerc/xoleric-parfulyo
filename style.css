@@ -1796,6 +1796,23 @@ body {
   padding: 0 4px;
   letter-spacing: 0.5px;
 }
+.playme-list-toolbar {
+  display: flex; gap: 6px;
+  padding: 0 4px;
+}
+.playme-tool-btn {
+  width: 28px; height: 28px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg2);
+  color: var(--text-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.playme-tool-btn:hover { background: var(--bg1); color: var(--text); }
+.playme-sub-input-label { display: none; }
 .playme-info { padding: 0 4px; }
 .playme-title { font-size: 15px; font-weight: 700; line-height: 1.3; }
 
@@ -2079,13 +2096,21 @@ body {
   padding-right: 4px;
 }
 .playme-item {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 6px;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition);
   border: 1px solid transparent;
   position: relative;
+}
+.playme-item.dragging { opacity: 0.4; }
+.playme-item-drag {
+  cursor: grab; font-size: 14px;
+  color: var(--text-muted);
+  width: 16px; text-align: center;
+  flex-shrink: 0;
+  user-select: none;
 }
 @media (hover: hover) {
   .playme-item:hover {
@@ -3038,6 +3063,96 @@ body {
 .widget-card:nth-child(1) { animation-delay: 0.05s; }
 .widget-card:nth-child(2) { animation-delay: 0.1s; }
 .widget-card:nth-child(3) { animation-delay: 0.15s; }
+
+/* Stats widget */
+.widget-stats { display: flex; flex-direction: column; gap: 6px; }
+.widget-stats-icon { font-size: 18px; }
+.widget-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.ws-item {
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  background: var(--bg2);
+  border-radius: 8px;
+}
+.ws-val {
+  font-size: 16px; font-weight: 700;
+  color: var(--accent);
+}
+.ws-lbl {
+  font-size: 9px; text-transform: uppercase;
+  color: var(--text-muted); letter-spacing: 0.5px;
+}
+
+/* Weather widget */
+.widget-weather {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 2px;
+  text-align: center;
+}
+.widget-weather-icon { font-size: 24px; }
+.widget-weather-temp { font-size: 22px; font-weight: 700; }
+.widget-weather-city { font-size: 11px; color: var(--text-muted); }
+.widget-weather-desc { font-size: 11px; color: var(--text-muted); }
+
+/* Mini music player */
+.widget-music {
+  display: flex; align-items: center;
+  gap: 10px;
+}
+.widget-music-icon { font-size: 20px; }
+.widget-music-info { flex: 1; min-width: 0; }
+.widget-music-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.widget-music-status { font-size: 11px; color: var(--text-muted); }
+.widget-music-play {
+  width: 32px; height: 32px;
+  border: none; background: var(--accent);
+  color: #fff; font-size: 13px;
+  border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.widget-music-play:hover { transform: scale(1.1); }
+
+/* Resume widget */
+.widget-resume {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.widget-resume-icon { font-size: 24px; }
+.widget-resume-info { flex: 1; min-width: 0; }
+.widget-resume-name { font-size: 14px; font-weight: 700; }
+.widget-resume-title { font-size: 11px; color: var(--text-muted); }
+.widget-resume-tags {
+  display: flex; flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.widget-resume-tags span {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Cheatsheet */
+.cheatsheet-modal .cs-key {
+  font-family: monospace;
+  background: var(--bg2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--accent);
+  text-align: center;
+}
 .hero-glass { animation: slideUpIn 0.5s ease 0.2s backwards; }
 .playme-item.active {
   animation: pulseGlow 2s ease infinite;

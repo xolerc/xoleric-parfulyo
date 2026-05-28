@@ -97,6 +97,39 @@
               <div class="widget-quote-icon"></div>
               <div class="quote-text" id="quoteText">Uyg'on, Xoleric...</div>
             </div>
+            <div class="widget-card widget-stats" id="widgetStats">
+              <div class="widget-stats-icon">📊</div>
+              <div class="widget-stats-grid">
+                <div class="ws-item"><span class="ws-val" id="wsVisits">—</span><span class="ws-lbl">Tashrif</span></div>
+                <div class="ws-item"><span class="ws-val" id="wsOnline">—</span><span class="ws-lbl">Online</span></div>
+                <div class="ws-item"><span class="ws-val" id="wsChat">—</span><span class="ws-lbl">Xabarlar</span></div>
+                <div class="ws-item"><span class="ws-val" id="wsRooms">—</span><span class="ws-lbl">Xonalar</span></div>
+              </div>
+            </div>
+            <div class="widget-card widget-weather" id="widgetWeather">
+              <div class="widget-weather-icon">🌤</div>
+              <div class="widget-weather-temp" id="weatherTemp">—°</div>
+              <div class="widget-weather-city">Namangan</div>
+              <div class="widget-weather-desc" id="weatherDesc">Yuklanmoqda...</div>
+            </div>
+            <div class="widget-card widget-music" id="widgetHomeMusic">
+              <div class="widget-music-icon">🎵</div>
+              <div class="widget-music-info">
+                <div class="widget-music-title" id="homeMusicTitle">Musiqa dam olish</div>
+                <div class="widget-music-status" id="homeMusicStatus">To'xtatilgan</div>
+              </div>
+              <button class="widget-music-play" id="homeMusicBtn">▶</button>
+            </div>
+            <div class="widget-card widget-resume">
+              <div class="widget-resume-icon">👨‍💻</div>
+              <div class="widget-resume-info">
+                <div class="widget-resume-name">XOLERIC</div>
+                <div class="widget-resume-title" data-i18n="hero.desc">Frontend arxitektori. Tizimlar quruvchi.</div>
+                <div class="widget-resume-tags">
+                  <span>React</span><span>Vue</span><span>Python</span><span>Firebase</span><span>AI</span>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="hero-glass">
             <div class="hero-glow-bg"></div>
@@ -314,8 +347,17 @@
             </div>
             <div class="playme-list-col">
               <div class="playme-list-header" data-i18n="playme.list">Pleer ro'yxati</div>
+              <div class="playme-list-toolbar">
+                <button class="playme-tool-btn" id="playmeSaveBtn" title="Saqlash">💾</button>
+                <button class="playme-tool-btn" id="playmeLoadBtn" title="Yuklash">📂</button>
+                <button class="playme-tool-btn" id="playmeSubBtn" title="Subtitr">📄</button>
+                <label class="playme-sub-input-label" id="playmeSubLabel" style="display:none">
+                  <input type="file" accept=".vtt,.srt" id="playmeSubInput" />
+                </label>
+              </div>
               <div class="playme-list" id="playmeList"></div>
             </div>
+            <div id="playmeSubTrack" style="display:none"></div>
           </div>
         </div>
 
@@ -431,6 +473,10 @@
                 <option value="en">English</option>
                 <option value="ru">Русский</option>
               </select>
+            </div>
+            <div class="settings-item">
+              <span class="settings-item-label" data-i18n="settings.export">Ma'lumotlarni eksport qilish</span>
+              <button class="glass-btn glass-sm" id="exportDataBtn">📥 Yuklab olish</button>
             </div>
           </div>
 
