@@ -2942,11 +2942,11 @@ body {
   .contact-grid { grid-template-columns: 1fr 1fr; }
 
   .chat-block {
-    height: calc(100dvh - 105px);
+    height: calc(100dvh - var(--bottomnav-h, 64px) - 36px);
     min-height: 380px;
     border-radius: var(--radius);
   }
-  /* Chat list/room on tablet */
+  .chat-msgs { padding: 8px 12px; }
 
   .msg-wrapper { max-width: 85%; }
 
@@ -3002,12 +3002,12 @@ body {
   .contact-card { padding: 20px; gap: 12px; }
 
   .chat-block {
-    height: calc(100dvh - 90px);
+    height: calc(100dvh - var(--bottomnav-h, 56px) - 24px);
     min-height: 300px;
     border-radius: 0;
   }
   .chat-msgs { padding: 6px 8px; gap: 3px; }
-  .chat-input-bar { padding: 6px 8px; gap: 4px; }
+  .chat-input-bar { padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 4px)); gap: 4px; }
   .chat-list-appbar { padding: 10px 12px; min-height: 48px; }
   .chat-current-user { padding: 10px 12px; }
   .chat-user-avatar { width: 36px; height: 36px; font-size: 13px; }
