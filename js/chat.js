@@ -286,12 +286,18 @@
         var unsub = DB.subscribeMessages(roomId, function (msgs) { unsub(); for (var i = 0; i < msgs.length; i++) { if (msgs[i].id === msgId) { resolve(msgs[i]); return } }; resolve(null) })
       })
       if (!msg || !msg.media) { btn.textContent = '▶'; return }
-      if (msg.media.indexOf('blob:') === 0 || msg.media.indexOf('data:audio') === 0) {
-        var audio = new Audio(msg.media); audio.play().catch(function () {})
-        btn.textContent = '⏹'; audio.onended = function () { btn.textContent = '▶' }; audio.onerror = function () { btn.textContent = '▶' }; return
+      if (msg.media.indexOf('data:audio') === 0 || msg.media.indexOf('blob:') === 0) {
+        if (window._currentAudio && !window._currentAudio.paused) { window._currentAudio.pause(); window._currentAudio = null }
+        var audio = new Audio(msg.media)
+        window._currentAudio = audio
+        try { await audio.play() } catch (e) { btn.textContent = '▶'; window._currentAudio = null; if (e.name !== 'AbortError') toast('Audio ijro etilmadi'); return }
+        btn.textContent = '⏹'
+        audio.onended = function () { btn.textContent = '▶'; window._currentAudio = null }
+        audio.onerror = function () { btn.textContent = '▶'; window._currentAudio = null; toast('Audio xatolik') }
+        return
       }
       btn.textContent = '▶'
-    } catch (e) { btn.textContent = '▶' }
+    } catch (e) { btn.textContent = '▶'; window._currentAudio = null }
   }
 
   var reactionsOpen = {}
@@ -463,18 +469,28 @@
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return toast("Ovoz yozish qo'llab-quvvatlanmaydi")
         try {
           voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-          mediaRecorder = new MediaRecorder(voiceStream, { mimeType: 'audio/webm' }); audioChunks = []
+          var mimeOpts = {}
+          if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mimeOpts.mimeType = 'audio/webm;codecs=opus'
+          else if (MediaRecorder.isTypeSupported('audio/webm')) mimeOpts.mimeType = 'audio/webm'
+          else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeOpts.mimeType = 'audio/mp4'
+          else if (MediaRecorder.isTypeSupported('audio/aac')) mimeOpts.mimeType = 'audio/aac'
+          mediaRecorder = new MediaRecorder(voiceStream, mimeOpts); audioChunks = []
           mediaRecorder.ondataavailable = function (e) { if (e.data.size > 0) audioChunks.push(e.data) }
           var user = currentUser
           mediaRecorder.onstop = async function () {
             if (voiceStream) { voiceStream.getTracks().forEach(function (t) { t.stop() }); voiceStream = null }
             if (!user || !audioChunks.length) return
-            var blob = new Blob(audioChunks, { type: 'audio/webm' }); var reader = new FileReader()
+            var mimeType = mediaRecorder.mimeType || 'audio/webm'
+            var blob = new Blob(audioChunks, { type: mimeType }); var reader = new FileReader()
             reader.onload = async function () { var b = reader.result; if (b && b.length > 9000000) { toast('Ovoz xabari juda katta'); return }; try { await DB.sendMessage(currentRoomId, { fromId: user.id, fromName: user.username, fromAvatar: user.avatar || '', text: '', media: b }) } catch (e) { toast('Ovoz yuborilmadi.') } }
             reader.readAsDataURL(blob)
           }
           mediaRecorder.start(); recording = true; voiceBtn.classList.add('recording')
-        } catch (e) { toast("Mikrofon ruxsati yo'q") }
+        } catch (e) {
+          if (e.name === 'NotAllowedError') toast("Mikrofon ruxsati yo'q")
+          else if (e.message && e.message.indexOf('MIME') >= 0) toast("Ovoz formati qo'llab-quvvatlanmaydi")
+          else toast('Ovoz yozilmadi: ' + (e.message || 'xatolik'))
+        }
       })
     }
     var cancelBtn = $('chatReplyCancel')

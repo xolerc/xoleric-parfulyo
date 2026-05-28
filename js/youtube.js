@@ -30,9 +30,16 @@
   async function fetchJSON(path, p) {
     if (ctrl) ctrl.abort()
     ctrl = new AbortController()
-    var r = await fetch(url(path, p), { signal: ctrl.signal })
-    var d = await r.json()
-    if (d.error) {
+    var r, d
+    try {
+      r = await fetch(url(path, p), { signal: ctrl.signal })
+      d = await r.json()
+    } catch (e) {
+      if (e.name === 'AbortError') throw e
+      if (r && !r.ok) throw new Error('HTTP ' + r.status)
+      throw new Error('Tarmoq xatosi')
+    }
+    if (d && d.error) {
       if (d.error.message && d.error.message.indexOf('quota') >= 0) throw new Error('QUOTA_EXCEEDED')
       throw new Error(d.error.message || 'API xatosi')
     }
@@ -244,13 +251,14 @@
     if (!cd) return
     cat = ''; chanFilter = null
     $('vpChipsAll') && $('vpChipsAll').classList.remove('act')
+    renderSkel()
     var q = cd.title.split(' ').slice(0, 4).join(' ')
     search(q).then(function (v) {
-      if (!v || !v.length) return
+      if (!v || !v.length) { hideSkel(); return }
       v = v.filter(function (x) { return x.id !== id })
       if (v.length > 12) v = v.slice(0, 12)
       render(v)
-    }).catch(function () {})
+    }).catch(function () { hideSkel() })
   }
 
   function play(id) {
@@ -298,7 +306,7 @@
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden && ytPlayer && playerReady && !manualPause) {
       var s = ytPlayer.getPlayerState()
-      if (s === 2 || s === 3 || s === -1) {
+      if (s === 3 || s === -1) {
         try { ytPlayer.playVideo() } catch (ex) {}
       }
     }
@@ -346,6 +354,8 @@
     })
   }
 
+  var statsCache = {}, statsCacheKeys = []
+
   async function fetchSearch(q, pt) {
     var cq = (q || '') + (chanFilter ? ' ' + chanFilter : '')
     var cacheKey = 'search_' + cq + (pt || '')
@@ -361,10 +371,24 @@
     var ids = [], map = {}
     for (var i = 0; i < d.items.length; i++) { if (d.items[i].id && d.items[i].id.videoId) { ids.push(d.items[i].id.videoId); map[d.items[i].id.videoId] = d.items[i] } }
     if (!ids.length) throw new Error('Hech narsa topilmadi')
-    var s = await fetchJSON('videos', { part: 'statistics', id: ids.join(',') })
-    var sm = {}; if (s.items) { for (var j = 0; j < s.items.length; j++) sm[s.items[j].id] = s.items[j].statistics }
+    /* Fetch stats for unseen IDs only, use in-memory cache for same batch */
+    var missingIds = ids.filter(function (id) { return !statsCache[id] })
+    if (missingIds.length) {
+      var chunkSize = 50
+      for (var ci = 0; ci < missingIds.length; ci += chunkSize) {
+        var chunk = missingIds.slice(ci, ci + chunkSize)
+        try {
+          var s = await fetchJSON('videos', { part: 'statistics', id: chunk.join(',') })
+          if (s.items) for (var j = 0; j < s.items.length; j++) {
+            statsCache[s.items[j].id] = s.items[j].statistics
+            statsCacheKeys.push(s.items[j].id)
+          }
+        } catch (e) { if (e.message === 'QUOTA_EXCEEDED') throw e }
+      }
+      while (statsCacheKeys.length > 500) { var old = statsCacheKeys.shift(); delete statsCache[old] }
+    }
     var r = ids.map(function (id) {
-      var v = map[id], st = sm[id] || {}, t = v.snippet.thumbnails, th = (t.high || t.medium || t.default).url
+      var v = map[id], st = statsCache[id] || {}, t = v.snippet.thumbnails, th = (t.high || t.medium || t.default).url
       return { id: id, title: v.snippet.title, thumb: th, published: v.snippet.publishedAt, views: st.viewCount || '0', channel: v.snippet.channelTitle }
     })
     if (!pt) sc(cacheKey, r)
@@ -373,9 +397,9 @@
 
   async function fetchTrending(pt) {
     var cacheKey = 'trending_' + (pt || '')
+    if (chanFilter) return fetchSearch('', pt)
     var c = gc(cacheKey)
     if (c && !pt) return c
-    if (chanFilter) return fetchSearch('', pt)
     if (ctrl) ctrl.abort()
     ctrl = new AbortController()
     var params = { part: 'snippet,statistics', chart: 'mostPopular', maxResults: 30 }
@@ -439,19 +463,33 @@
       }
       if (newV && newV.length) { allVideos = allVideos.concat(newV); render(newV, true) }
       if (!pageToken) $('vpLoadMore').style.display = 'none'
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      console.error(e)
+      var descEl = $('vpErrDesc')
+      if (descEl && e.message) descEl.textContent = e.message === 'QUOTA_EXCEEDED' ? 'Kunlik limit tugadi' : e.message
+    }
     loadMtx = false
     if (btn) btn.disabled = false
   }
 
+  var searchMtx = false
+
   function doSearch(q) {
     q = q.trim()
     if (!q) { cat = 'all'; chanFilter = null; chips('all'); load('all'); return }
+    if (searchMtx) { if (ctrl) ctrl.abort(); searchMtx = false }
     cat = ''; chanFilter = null; chips(''); renderSkel(); hide($('vpErr')); hide($('vpNone')); hide($('vpLoadMore'))
+    searchMtx = true
     search(q).then(function (v) {
+      searchMtx = false
       if (v && v.length) { allVideos = v; render(v); if (pageToken) show($('vpLoadMore')) } else { hideSkel(); show($('vpNone')) }
     }).catch(function (e) {
-      if (e.name === 'AbortError') return; console.error(e); hideSkel(); show($('vpErr')); var d = $('vpErrDesc'); if (d) d.textContent = e.message || 'Xatolik'
+      searchMtx = false
+      if (e.name === 'AbortError') return; console.error(e)
+      var staleKey = 'search_' + q
+      var stale = gcStale(staleKey)
+      if (stale && stale.length) { hideSkel(); allVideos = stale; render(stale); var d = $('vpErrDesc'); if (d) d.textContent = 'Kesh ma\'lumotlari (yangilash imkonsiz)'; return }
+      hideSkel(); show($('vpErr')); var d = $('vpErrDesc'); if (d) d.textContent = e.message === 'QUOTA_EXCEEDED' ? 'Kunlik limit tugadi. Ertaga qayta urinib ko\'ring.' : (e.message || 'Xatolik')
     })
   }
 
