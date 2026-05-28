@@ -94,7 +94,13 @@
   function ensureYTAPI() {
     if (YT_API_LOADED) return Promise.resolve()
     return new Promise(function (resolve) {
-      var check = function () { if (typeof YT !== 'undefined' && YT.loaded) { YT_API_LOADED = true; resolve() } else setTimeout(check, 200) }
+      var waited = 0
+      var check = function () {
+        if (typeof YT !== 'undefined' && YT.loaded) { YT_API_LOADED = true; resolve(); return }
+        waited += 200
+        if (waited > 10000) { resolve(); return }
+        setTimeout(check, 200)
+      }
       check()
     })
   }
@@ -130,40 +136,46 @@
     playerReady = false; manualPause = false
     var vid = $('vpPlayerVid')
     if (!vid) return
-    vid.innerHTML = '<div id="vpYouTubePlayer"></div>'
     ensureYTAPI().then(function () {
-      ytPlayer = new YT.Player('vpYouTubePlayer', {
-        width: '100%', height: '100%',
-        videoId: videoId,
-        playerVars: { autoplay: 1, rel: 0, controls: 1, playsinline: 1 },
-        events: {
-          onReady: function () {
-            playerReady = true
-            if (ytPlayer) ytPlayer.playVideo()
-            updateToggle()
-          },
-          onStateChange: function (e) {
-            var state = e.data
-            stopRetry()
-            if (state === 1) {
-              manualPause = false; updateToggle()
-            } else if (state === 2) {
-              if (document.hidden) {
-              } else if (!manualPause) {
-                manualPause = true; updateToggle()
+      vid.innerHTML = ''
+      if (typeof YT !== 'undefined' && YT.Player) {
+        vid.innerHTML = '<div id="vpYouTubePlayer"></div>'
+        ytPlayer = new YT.Player('vpYouTubePlayer', {
+          width: '100%', height: '100%',
+          videoId: videoId,
+          playerVars: { autoplay: 1, rel: 0, controls: 1, playsinline: 1 },
+          events: {
+            onReady: function () {
+              playerReady = true
+              if (ytPlayer) ytPlayer.playVideo()
+              updateToggle()
+            },
+            onStateChange: function (e) {
+              var state = e.data
+              stopRetry()
+              if (state === 1) {
+                manualPause = false; updateToggle()
+              } else if (state === 2) {
+                if (document.hidden) {
+                } else if (!manualPause) {
+                  manualPause = true; updateToggle()
+                }
+              } else if (state === 3) {
+                if (!manualPause) startRetry()
+                updateToggle()
+              } else if (state === 0) {
+                setTimeout(function () {
+                  if (ytPlayer && !manualPause) try { ytPlayer.playVideo() } catch (ex) {}
+                }, 600)
+                updateToggle()
               }
-            } else if (state === 3) {
-              if (!manualPause) startRetry()
-              updateToggle()
-            } else if (state === 0) {
-              setTimeout(function () {
-                if (ytPlayer && !manualPause) try { ytPlayer.playVideo() } catch (ex) {}
-              }, 600)
-              updateToggle()
             }
           }
-        }
-      })
+        })
+      } else {
+        vid.innerHTML = '<iframe style="position:absolute;top:0;left:0;width:100%;height:100%" src="https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0&playsinline=1" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>'
+        playerReady = true
+      }
     })
   }
 
