@@ -9,16 +9,26 @@
   function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
   function escAttr(s) { return (s || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;') }
 
-  async function fetchJSON(url) {
-    var resp = await fetch(url)
+  function ytApiUrl(path, params) {
+    var p = ''; for (var k in params) { if (p) p += '&'; p += k + '=' + encodeURIComponent(params[k]) }
+    return 'https://www.googleapis.com/youtube/v3/' + path + '?' + p + '&key=' + API_KEY
+  }
+
+  async function ytFetch(path, params) {
+    var resp = await fetch(ytApiUrl(path, params))
+    var data = await resp.json()
+    if (data.error) throw new Error(data.error.message || 'YouTube API xatosi')
     if (!resp.ok) throw new Error('HTTP ' + resp.status)
-    return resp.json()
+    return data
   }
 
   async function getChannelId() {
     if (cache.channelId) return cache.channelId
-    var data = await fetchJSON('https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=' + encodeURIComponent(CHANNEL_HANDLE) + '&key=' + API_KEY)
-    if (!data.items || !data.items.length) throw new Error('Channel not found')
+    var data = await ytFetch('channels', { part: 'id', forHandle: CHANNEL_HANDLE })
+    if (!data.items || !data.items.length) {
+      data = await ytFetch('channels', { part: 'id', forUsername: CHANNEL_HANDLE.replace('@', '') })
+    }
+    if (!data.items || !data.items.length) throw new Error('Kanal topilmadi')
     cache.channelId = data.items[0].id
     localStorage.setItem(CHANNEL_ID_KEY, cache.channelId)
     return cache.channelId
@@ -26,10 +36,10 @@
 
   async function fetchVideos() {
     var channelId = await getChannelId()
-    var data = await fetchJSON('https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=' + channelId + '&order=date&maxResults=30&type=video&key=' + API_KEY)
-    if (!data.items || !data.items.length) throw new Error('No videos found')
+    var data = await ytFetch('search', { part: 'snippet', channelId: channelId, order: 'date', maxResults: 30, type: 'video' })
+    if (!data.items || !data.items.length) throw new Error('Videolar topilmadi')
     var ids = data.items.map(function (v) { return v.id.videoId }).join(',')
-    var statsData = await fetchJSON('https://www.googleapis.com/youtube/v3/videos?part=statistics&id=' + ids + '&key=' + API_KEY)
+    var statsData = await ytFetch('videos', { part: 'statistics', id: ids })
     var statsMap = {}
     if (statsData.items) {
       for (var i = 0; i < statsData.items.length; i++) {
@@ -83,10 +93,11 @@
     grid.innerHTML = html
   }
 
-  function showError() {
-    var loader = $('ytLoader'), grid = $('ytGrid'), error = $('ytError')
+  function showError(msg) {
+    var loader = $('ytLoader'), grid = $('ytGrid'), error = $('ytError'), desc = $('ytErrorDesc')
     if (loader) loader.style.display = 'none'
     if (grid) grid.innerHTML = ''
+    if (desc && msg) desc.textContent = msg
     if (error) error.style.display = 'block'
   }
 
@@ -116,7 +127,7 @@
       renderGrid(videos)
     } catch (e) {
       console.error('YouTube load error:', e)
-      showError()
+      showError(e.message || 'Keyinroq urinib ko\'ring.')
     }
   }
 

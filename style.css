@@ -3038,8 +3038,21 @@ body {
 .yt-error {
   text-align: center;
   padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.yt-error-icon { font-size: 32px; }
+.yt-error-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.yt-error-desc {
+  font-size: 13px;
   color: var(--text-muted);
-  font-size: 14px;
+  max-width: 400px;
 }
 
 .yt-grid {
