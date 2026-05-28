@@ -2,37 +2,33 @@
   "rules": {
     "users": {
       ".read": true,
-      ".write": true,
-      "$uid": {
-        ".validate": "newData.hasChildren(['id', 'username'])",
-        "username": { ".validate": "newData.isString() && newData.val().length <= 30" },
-        "bio": { ".validate": "newData.isString() && newData.val().length <= 80" },
-        "avatar": { ".validate": "newData.isString() && newData.val().length <= 500000" },
-        "online": { ".validate": "newData.isBoolean()" }
-      }
+      ".write": true
     },
-    "messages": {
-      "main": {
-        ".read": true,
-        ".write": true,
-        "$msgId": {
-          ".validate": "newData.hasChildren(['fromId', 'fromName', 'time'])",
-          "fromId": { ".validate": "newData.isString() && newData.val().length <= 50" },
-          "fromName": { ".validate": "newData.isString() && newData.val().length <= 30" },
-          "text": { ".validate": "newData.isString() && newData.val().length <= 2000" },
-          "media": { ".validate": "newData.isString() && newData.val().length <= 9000000" },
-          "time": { ".validate": "newData.isNumber()" },
-          "reaction": { ".validate": "newData.isString() && newData.val().length <= 10" },
-          "replyTo": { ".validate": "newData.isString() && newData.val().length <= 50" },
-          "edited": { ".validate": "newData.isNumber()" }
-        }
-      }
-    },
-    "notifications": {
+    "chat": {
       ".read": true,
       ".write": true,
-      "$notifId": {
-        ".validate": "newData.hasChildren(['userId', 'type', 'time'])"
+      "rooms": {
+        "$roomId": {
+          ".validate": "newData.hasChildren(['id', 'name', 'creator'])"
+        }
+      },
+      "$roomId": {
+        "messages": {
+          "$msgId": {
+            ".validate": "newData.hasChildren(['fromId', 'fromName', 'time'])",
+            "fromId": { ".validate": "newData.isString() && newData.val().length <= 50" },
+            "fromName": { ".validate": "newData.isString() && newData.val().length <= 30" },
+            "text": { ".validate": "newData.isString() && newData.val().length <= 2000" },
+            "media": { ".validate": "newData.isString() && newData.val().length <= 9000000" },
+            "time": { ".validate": "newData.isNumber()" },
+            "reaction": { ".validate": "newData.isString() && newData.val().length <= 10" },
+            "replyTo": { ".validate": "newData.isString() && newData.val().length <= 50" },
+            "edited": { ".validate": "newData.isNumber()" }
+          }
+        },
+        "info": {
+          ".validate": "newData.hasChildren(['lastActivity'])"
+        }
       }
     },
     "stats": {
