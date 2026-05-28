@@ -19,7 +19,7 @@
   "license": "MIT",
   "description": "XOLERIC — Namanganlik dasturchi portfolio",
   "dependencies": {
-    "firebase": "^10.14.1"
+    "firebase": "^12.13.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
