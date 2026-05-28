@@ -1,9 +1,9 @@
 (function () {
   'use strict'
   var API_KEY = 'AIzaSyAwpEdIA_5_1aDPoMP0Q_ROE_zTrhoxwKs'
-  var CHANNEL_HANDLE = '@xoleric'
+  var CHANNEL_ID = 'UCkEM86vtj0ekHTCBfA6qTFQ'
   var CHANNEL_ID_KEY = 'xolerc_yt_channel'
-  var cache = { channelId: localStorage.getItem(CHANNEL_ID_KEY), videos: null }
+  var cache = { channelId: CHANNEL_ID, videos: null }
 
   function $(id) { return document.getElementById(id) }
   function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
@@ -23,15 +23,7 @@
   }
 
   async function getChannelId() {
-    if (cache.channelId) return cache.channelId
-    var data = await ytFetch('channels', { part: 'id', forHandle: CHANNEL_HANDLE })
-    if (!data.items || !data.items.length) {
-      data = await ytFetch('channels', { part: 'id', forUsername: CHANNEL_HANDLE.replace('@', '') })
-    }
-    if (!data.items || !data.items.length) throw new Error('Kanal topilmadi')
-    cache.channelId = data.items[0].id
-    localStorage.setItem(CHANNEL_ID_KEY, cache.channelId)
-    return cache.channelId
+    return CHANNEL_ID
   }
 
   async function fetchVideos() {
