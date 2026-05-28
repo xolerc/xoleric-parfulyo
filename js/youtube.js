@@ -3,6 +3,8 @@
   var KEY = 'AIzaSyAwpEdIA_5_1aDPoMP0Q_ROE_zTrhoxwKs'
   var TTL = 30 * 60 * 1000
   var ctrl = null, st = null, cat = 'all', playing = null
+  var ytPlayer = null, manualPause = false, playerReady = false, YT_API_LOADED = false
+  var retryTimer = null
 
   var CHIPS = [
     { id: 'all', label: 'Trends', q: '' },
@@ -89,21 +91,106 @@
     })
   }
 
+  function ensureYTAPI() {
+    if (YT_API_LOADED) return Promise.resolve()
+    return new Promise(function (resolve) {
+      var check = function () { if (typeof YT !== 'undefined' && YT.loaded) { YT_API_LOADED = true; resolve() } else setTimeout(check, 200) }
+      check()
+    })
+  }
+
+  function updateToggle() {
+    var btn = $('vpPlayerToggle')
+    if (!btn) return
+    if (!ytPlayer || !playerReady) { btn.textContent = '▶'; btn.classList.add('paused'); return }
+    var s = ytPlayer.getPlayerState()
+    if (s === 1) { btn.textContent = '⏸'; btn.classList.remove('paused') }
+    else { btn.textContent = '▶'; btn.classList.add('paused') }
+  }
+
+  function stopRetry() { if (retryTimer) { clearInterval(retryTimer); retryTimer = null } }
+
+  function startRetry() {
+    stopRetry()
+    var tries = 0
+    retryTimer = setInterval(function () {
+      if (!ytPlayer || manualPause || !playerReady) { stopRetry(); return }
+      tries++
+      if (tries > 20) { stopRetry(); return }
+      var s = ytPlayer.getPlayerState()
+      if (s === 1) { stopRetry(); return }
+      if (s === 2 || s === 0) { stopRetry(); return }
+      try { ytPlayer.playVideo() } catch (ex) {}
+    }, 500)
+  }
+
+  function createPlayer(videoId) {
+    if (ytPlayer) { ytPlayer.destroy(); ytPlayer = null }
+    stopRetry()
+    playerReady = false; manualPause = false
+    var vid = $('vpPlayerVid')
+    if (!vid) return
+    vid.innerHTML = '<div id="vpYouTubePlayer"></div>'
+    ensureYTAPI().then(function () {
+      ytPlayer = new YT.Player('vpYouTubePlayer', {
+        width: '100%', height: '100%',
+        videoId: videoId,
+        playerVars: { autoplay: 1, rel: 0, controls: 1, playsinline: 1 },
+        events: {
+          onReady: function () {
+            playerReady = true
+            if (ytPlayer) ytPlayer.playVideo()
+            updateToggle()
+          },
+          onStateChange: function (e) {
+            var state = e.data
+            stopRetry()
+            if (state === 1) {
+              manualPause = false; updateToggle()
+            } else if (state === 2) {
+              if (document.hidden) {
+              } else if (!manualPause) {
+                manualPause = true; updateToggle()
+              }
+            } else if (state === 3) {
+              if (!manualPause) startRetry()
+              updateToggle()
+            } else if (state === 0) {
+              setTimeout(function () {
+                if (ytPlayer && !manualPause) try { ytPlayer.playVideo() } catch (ex) {}
+              }, 600)
+              updateToggle()
+            }
+          }
+        }
+      })
+    })
+  }
+
   function play(id) {
     if (!id) return
-    playing = id
+    playing = id; manualPause = false
     var grid = $('vpGrid')
     if (grid) { grid.querySelectorAll('.vp-card.active').forEach(function (el) { el.classList.remove('active') }); var c = grid.querySelector('.vp-card[data-id="' + id + '"]'); if (c) c.classList.add('active') }
-    var bar = $('vpPlayer'), vid = $('vpPlayerVid'), tEl = $('vpPlayerTitle'), sEl = $('vpPlayerSub')
-    if (!bar || !vid) return
+    var bar = $('vpPlayer'), tEl = $('vpPlayerTitle'), sEl = $('vpPlayerSub')
+    if (!bar) return
     var cd = cardData(id)
     if (tEl) tEl.textContent = cd ? cd.title : ''
     if (sEl && cd) sEl.textContent = cd.channel + ' · ' + fmt(cd.views)
     else if (sEl) sEl.textContent = ''
-    vid.innerHTML = '<iframe style="position:absolute;top:0;left:0;width:100%;height:100%" src="https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>'
     bar.style.display = 'flex'
+    createPlayer(id)
     resizeFeed()
   }
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && ytPlayer && playerReady && !manualPause) {
+      var s = ytPlayer.getPlayerState()
+      if (s === 2 || s === 3 || s === -1) {
+        try { ytPlayer.playVideo() } catch (ex) {}
+      }
+    }
+  })
 
   function cardData(id) {
     var c = document.querySelector('.vp-card[data-id="' + id + '"]')
@@ -119,11 +206,12 @@
   }
 
   function closeP() {
-    var bar = $('vpPlayer'), vid = $('vpPlayerVid'), feed = $('vpFeed')
+    stopRetry()
+    var bar = $('vpPlayer'), feed = $('vpFeed')
+    if (ytPlayer) { try { ytPlayer.destroy() } catch (ex) {}; ytPlayer = null }
+    playerReady = false; manualPause = false; playing = null
     if (bar) bar.style.display = 'none'
-    if (vid) vid.innerHTML = ''
     if (feed) feed.style.maxHeight = ''
-    playing = null
     var grid = $('vpGrid')
     if (grid) grid.querySelectorAll('.vp-card.active').forEach(function (el) { el.classList.remove('active') })
   }
@@ -164,10 +252,28 @@
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { if (st) clearTimeout(st); doSearch(inp.value.trim()) } })
   }
 
+  function setupToggle() {
+    var btn = $('vpPlayerToggle')
+    if (!btn) return
+    btn.addEventListener('click', function () {
+      if (!ytPlayer || !playerReady) return
+      var s = ytPlayer.getPlayerState()
+      if (s === 1) {
+        manualPause = true
+        ytPlayer.pauseVideo()
+      } else {
+        manualPause = false
+        ytPlayer.playVideo()
+      }
+      updateToggle()
+    })
+  }
+
   window.addEventListener('resize', resizeFeed)
 
   window.initYoutube = function () {
-    chips('all'); setupSearch(); load('all')
+    chips('all'); setupSearch(); setupToggle()
     var x = $('vpPlayerX'); if (x) x.addEventListener('click', closeP)
+    load('all')
   }
 })()

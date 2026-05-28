@@ -202,10 +202,13 @@
             <div class="vp-player" id="vpPlayer" style="display:none">
               <div class="vp-player-vid" id="vpPlayerVid"></div>
               <div class="vp-player-info">
-                <div class="vp-player-title" id="vpPlayerTitle"></div>
-                <div class="vp-player-sub" id="vpPlayerSub"></div>
+                <button class="vp-player-toggle" id="vpPlayerToggle">⏸</button>
+                <div class="vp-player-text">
+                  <div class="vp-player-title" id="vpPlayerTitle"></div>
+                  <div class="vp-player-sub" id="vpPlayerSub"></div>
+                </div>
+                <button class="vp-player-x" id="vpPlayerX">✕</button>
               </div>
-              <button class="vp-player-x" id="vpPlayerX">✕</button>
             </div>
             <div class="vp-body">
               <div class="vp-chips" id="vpChips"></div>
@@ -481,7 +484,8 @@
 
 <div id="chatToast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script src="js/db.js"></script>
 <script src="js/engine.js"></script>

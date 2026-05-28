@@ -3037,10 +3037,34 @@ body {
 }
 
 .vp-player-info {
-  padding: 10px 14px;
+  padding: 8px 12px;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 10px;
+}
+.vp-player-toggle {
+  width: 32px; height: 32px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.vp-player-toggle:hover {
+  transform: scale(1.1);
+}
+.vp-player-toggle.paused {
+  background: var(--bg2);
+  color: var(--text);
+}
+.vp-player-text {
+  flex: 1;
+  min-width: 0;
 }
 .vp-player-title {
   font-size: 14px; font-weight: 600;
