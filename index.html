@@ -401,13 +401,23 @@
 
 <div id="chatToast"></div>
 
-<script type="module" src="/src/main.ts"></script>
+<script type="module" src="/src/main.ts" onerror="document.getElementById('loadingOverlay')?.classList.add('fade-out')"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }
+</script>
+<script>
+// Safety net: remove loading overlay after 10s no matter what
+setTimeout(function(){
+  var o = document.getElementById('loadingOverlay');
+  if (o && !o.classList.contains('fade-out')) {
+    o.classList.add('fade-out');
+    setTimeout(function(){ o.style.display = 'none'; }, 500);
+  }
+}, 10000);
 </script>
 </body>
 </html>

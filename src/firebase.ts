@@ -10,14 +10,14 @@ const FIREBASE_URL: string = config.FIREBASE_URL ||
   localStorage.getItem('xolerc_fb_url') ||
   'https://xoleric-9ad1b-default-rtdb.firebaseio.com';
 
-const fbConfig = {
-  databaseURL: FIREBASE_URL,
-  apiKey: 'xoleric-web',
-  authDomain: 'xoleric-9ad1b.firebaseapp.com',
-};
-
-const app = initializeApp(fbConfig);
-const db = getDatabase(app);
+let app: any;
+let db: any;
+try {
+  app = initializeApp({ databaseURL: FIREBASE_URL });
+  db = getDatabase(app);
+} catch (e) {
+  console.error('Firebase init error:', e);
+}
 
 export function escHtml(t: string): string {
   const d = document.createElement('div');

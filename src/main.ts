@@ -505,20 +505,48 @@ function initChatToggle() {
 
 /* ---- Init ---- */
 document.addEventListener('DOMContentLoaded', () => {
-  initEngine();
-  initMusic();
-  initChat();
-  initPlayme();
-  initRepos();
-  initNotifications();
-  initLoadingOverlay();
-  initCanvas();
-  initClock();
-  initQuotes();
-  initTheme();
-  initLang();
-  initSettings();
-  initChatToggle();
+  try {
+    initEngine();
+  } catch (e) { console.error('Engine init error:', e); }
+  try {
+    initMusic();
+  } catch (e) { console.error('Music init error:', e); }
+  try {
+    initChat();
+  } catch (e) { console.error('Chat init error:', e); }
+  try {
+    initPlayme();
+  } catch (e) { console.error('Playme init error:', e); }
+  try {
+    initRepos();
+  } catch (e) { console.error('Repos init error:', e); }
+  try {
+    initNotifications();
+  } catch (e) { console.error('Notifications init error:', e); }
+  try {
+    initLoadingOverlay();
+  } catch (e) { console.error('Loading overlay init error:', e); }
+  try {
+    initCanvas();
+  } catch (e) { console.error('Canvas init error:', e); }
+  try {
+    initClock();
+  } catch (e) { console.error('Clock init error:', e); }
+  try {
+    initQuotes();
+  } catch (e) { console.error('Quotes init error:', e); }
+  try {
+    initTheme();
+  } catch (e) { console.error('Theme init error:', e); }
+  try {
+    initLang();
+  } catch (e) { console.error('Lang init error:', e); }
+  try {
+    initSettings();
+  } catch (e) { console.error('Settings init error:', e); }
+  try {
+    initChatToggle();
+  } catch (e) { console.error('Chat toggle init error:', e); }
 
   document.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
