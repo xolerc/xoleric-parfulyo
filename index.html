@@ -187,46 +187,42 @@
           </div>
         </div>
 
-        <!-- ========== XOLERIC VIDEO (YouTube) ========== -->
+        <!-- ========== VIDEO PLAYER ========== -->
         <div class="tab-content" id="tab-video">
-          <div class="yt-page">
-            <div class="yt-header">
-              <div class="yt-brand">
-                <span class="yt-logo">▶</span>
-                <span class="yt-brand-text">XOLERIC <span style="color:var(--yt-red)">Video</span></span>
+          <div class="vp-app">
+            <div class="vp-top">
+              <div class="vp-top-left">
+                <span class="vp-logo">▶</span>
+                <span class="vp-title">Video</span>
               </div>
-              <div class="yt-header-right">
-                <div class="yt-search-wrap">
-                  <input class="yt-search" id="ytSearch" placeholder="Qidirish..." />
-                </div>
+              <div class="vp-top-right">
+                <input class="vp-search" id="vpSearch" placeholder="Qidirish..." />
               </div>
             </div>
-            <div class="yt-player-bar" id="ytPlayerBar" style="display:none">
-              <div class="yt-player-container">
-                <div id="ytPlayer"></div>
+            <div class="vp-player" id="vpPlayer" style="display:none">
+              <div class="vp-player-vid" id="vpPlayerVid"></div>
+              <div class="vp-player-info">
+                <div class="vp-player-title" id="vpPlayerTitle"></div>
+                <div class="vp-player-sub" id="vpPlayerSub"></div>
               </div>
-              <div class="yt-player-info" id="ytPlayerInfo">
-                <div class="yt-player-title" id="ytPlayerTitle">Video</div>
-                <div class="yt-player-meta" id="ytPlayerMeta"></div>
-              </div>
-              <button class="yt-player-close" id="ytPlayerClose">✕</button>
+              <button class="vp-player-x" id="vpPlayerX">✕</button>
             </div>
-            <div class="yt-content">
-              <div class="yt-chips" id="ytChips"></div>
-              <div class="yt-feed" id="ytFeed">
-                <div class="yt-loader" id="ytLoader">
+            <div class="vp-body">
+              <div class="vp-chips" id="vpChips"></div>
+              <div class="vp-feed" id="vpFeed">
+                <div class="vp-load" id="vpLoad">
                   <div class="mini-loader"></div>
                   <span>Yuklanmoqda...</span>
                 </div>
-                <div class="yt-grid" id="ytGrid"></div>
-                <div class="yt-empty" id="ytEmpty" style="display:none">
-                  <span class="yt-empty-icon">🎬</span>
-                  <span class="yt-empty-text">Video topilmadi</span>
+                <div class="vp-grid" id="vpGrid"></div>
+                <div class="vp-none" id="vpNone" style="display:none">
+                  <span class="vp-none-icon">🎬</span>
+                  <span>Video topilmadi</span>
                 </div>
-                <div class="yt-error" id="ytError" style="display:none">
-                  <div class="yt-error-icon">⚠️</div>
-                  <span class="yt-error-title">Xatolik yuz berdi</span>
-                  <span class="yt-error-desc" id="ytErrorDesc">Keyinroq urinib ko'ring.</span>
+                <div class="vp-err" id="vpErr" style="display:none">
+                  <span class="vp-err-icon">⚠️</span>
+                  <span class="vp-err-txt">Xatolik yuz berdi</span>
+                  <span class="vp-err-desc" id="vpErrDesc">Keyinroq urinib ko'ring.</span>
                 </div>
               </div>
             </div>
