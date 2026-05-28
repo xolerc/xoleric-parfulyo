@@ -23,27 +23,21 @@
     function sendQuote() {
       if (Notification.permission !== 'granted') return
       if (localStorage.getItem('xolerc_notif') === 'off') return
-      try { new Notification('XOLERIC ∞', { body: MOTIVATION[Math.floor(Math.random() * MOTIVATION.length)], icon: 'icon.png', vibrate: [200, 100, 200] }) } catch (e) { }
+      try { new Notification('XOLERIC ∞', { body: MOTIVATION[Math.floor(Math.random() * MOTIVATION.length)], icon: 'icon.png', vibrate: [200, 100, 200] }) } catch (e) {}
     }
     if (Notification.permission === 'granted') sendQuote()
     else if (Notification.permission !== 'denied') Notification.requestPermission().then(function (p) { if (p === 'granted') sendQuote() })
-    setInterval(sendQuote, 5 * 60 * 60 * 1000)
-  }
-
-  function initLoadingOverlay() {
-    setTimeout(function () {
-      var o = document.getElementById('loadingOverlay')
-      if (o && !o.classList.contains('fade-out')) { o.classList.add('fade-out'); setTimeout(function () { o.style.display = 'none' }, 500) }
-    }, 2000)
   }
 
   function initCanvas() {
     var canvas = document.getElementById('waveCanvas')
     if (!canvas) return
-    var ctx = canvas.getContext('2d')
-    var W, H, t = 0, animId = null, running = true
+    var ctx = canvas.getContext('2d'), W, H, t = 0, animId = null, running = true, wasOnHome = true
+
     function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight }
-    window.addEventListener('resize', resize); resize()
+    window.addEventListener('resize', resize)
+    resize()
+
     function draw() {
       if (!running) { animId = null; return }
       ctx.clearRect(0, 0, W, H)
@@ -53,20 +47,26 @@
         { a: 14, f: 0.005, s: 0.025, c: 'rgba(139,92,246,0.05)', oy: 0.54 },
         { a: 20, f: 0.009, s: 0.035, c: 'rgba(77,124,255,0.04)', oy: 0.37 }
       ]
-      waves.forEach(function (w) {
-        ctx.beginPath(); ctx.moveTo(0, H)
+      for (var w = 0; w < waves.length; w++) {
+        var wave = waves[w]; ctx.beginPath(); ctx.moveTo(0, H)
         for (var x = 0; x <= W; x += 3) {
-          var y = H * w.oy + Math.sin(x * w.f + t * w.s) * w.a + Math.sin(x * w.f * 2.5 + t * w.s * 1.4) * (w.a * 0.35)
+          var y = H * wave.oy + Math.sin(x * wave.f + t * wave.s) * wave.a + Math.sin(x * wave.f * 2.5 + t * wave.s * 1.4) * (wave.a * 0.35)
           ctx.lineTo(x, y)
         }
-        ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = w.c; ctx.fill()
-      })
+        ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = wave.c; ctx.fill()
+      }
       t += 1; animId = requestAnimationFrame(draw)
     }
-    document.addEventListener('visibilitychange', function () {
-      if (document.hidden) { running = false; if (animId) { cancelAnimationFrame(animId); animId = null } }
-      else { running = true; if (!animId) animId = requestAnimationFrame(draw) }
-    })
+
+    function checkVisibility() {
+      var onHome = window.getCurrentTab && window.getCurrentTab() === 0
+      var shouldRun = !document.hidden && onHome
+      if (shouldRun && !running) { running = true; if (!animId) animId = requestAnimationFrame(draw) }
+      else if (!shouldRun && running) { running = false; if (animId) { cancelAnimationFrame(animId); animId = null } }
+    }
+
+    document.addEventListener('visibilitychange', checkVisibility)
+    document.addEventListener('tabChange', checkVisibility)
     draw()
   }
 
@@ -80,8 +80,7 @@
     if (canvasClock) { canvasCtx = canvasClock.getContext('2d'); canvasClock.width = 120; canvasClock.height = 120 }
 
     function drawCanvasClock(h, m, s) {
-      if (!canvasCtx) return
-      var cx = 60, cy = 60, r = 50
+      if (!canvasCtx) return; var cx = 60, cy = 60, r = 50
       canvasCtx.clearRect(0, 0, 120, 120)
       var hue = (h * 30 + m * 0.5) % 360
       canvasCtx.save(); canvasCtx.translate(cx, cy)
@@ -91,8 +90,7 @@
       for (var i = 0; i < 12; i++) {
         var a = (i * Math.PI * 2) / 12 - Math.PI / 2, len = i % 3 === 0 ? 8 : 4
         canvasCtx.beginPath(); canvasCtx.moveTo(Math.cos(a) * (r - len), Math.sin(a) * (r - len)); canvasCtx.lineTo(Math.cos(a) * r, Math.sin(a) * r)
-        canvasCtx.strokeStyle = i % 3 === 0 ? 'rgba(77,124,255,0.3)' : 'rgba(255,255,255,0.08)'
-        canvasCtx.lineWidth = i % 3 === 0 ? 1.5 : 1; canvasCtx.stroke()
+        canvasCtx.strokeStyle = i % 3 === 0 ? 'rgba(77,124,255,0.3)' : 'rgba(255,255,255,0.08)'; canvasCtx.lineWidth = i % 3 === 0 ? 1.5 : 1; canvasCtx.stroke()
       }
       var hA = ((h % 12) * Math.PI * 2) / 12 + (m * Math.PI * 2) / 720 - Math.PI / 2
       var mA = (m * Math.PI * 2) / 60 - Math.PI / 2, sA = (s * Math.PI * 2) / 60 - Math.PI / 2
@@ -149,17 +147,32 @@
     minimal: { bg: '#000', bg2: '#0a0a0a', card: '#111', cardOverlay: '#111', border: 'rgba(255,255,255,0.03)', borderHover: 'rgba(255,255,255,0.06)', text: '#fff', text2: '#555', text3: 'rgba(255,255,255,0.12)', accent: '#fff', glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005))', glassText: 'rgba(255,255,255,0.5)', glassBorder: 'rgba(255,255,255,0.02)', glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.03), transparent 85%)' }
   }
 
+  var themeVars = ['--bg', '--bg2', '--surface', '--surface-glass', '--surface-hover', '--line', '--line-hover', '--text', '--text-secondary', '--text-muted', '--accent', '--accent-dim', '--accent-glow', '--glass-bg', '--glass-text', '--glass-border', '--glass-shimmer']
   window.applyTheme = function (name) {
     var t = themes[name]; if (!t) return
-    var r = document.documentElement, vars = {
-      '--bg': t.bg, '--bg2': t.bg2, '--surface': t.cardOverlay, '--surface-glass': t.card, '--surface-hover': t.borderHover, '--line': t.border, '--line-hover': t.borderHover, '--text': t.text, '--text-secondary': t.text2, '--text-muted': t.text3, '--accent': t.accent, '--accent-dim': t.accent + (t.accent.startsWith('#') ? '0f' : '0.06'), '--accent-glow': t.accent + (t.accent.startsWith('#') ? '1a' : '0.1'), '--glass-bg': t.glassBg, '--glass-text': t.glassText, '--glass-border': t.glassBorder, '--glass-shimmer': t.glassShimmer
-    }
-    Object.entries(vars).forEach(function (e) { r.style.setProperty(e[0], e[1]) })
-    document.body.style.background = t.bg
+    var r = document.documentElement
+    r.style.setProperty('--bg', t.bg)
+    r.style.setProperty('--bg2', t.bg2)
+    r.style.setProperty('--surface', t.cardOverlay)
+    r.style.setProperty('--surface-glass', t.card)
+    r.style.setProperty('--surface-hover', t.borderHover)
+    r.style.setProperty('--line', t.border)
+    r.style.setProperty('--line-hover', t.borderHover)
+    r.style.setProperty('--text', t.text)
+    r.style.setProperty('--text-secondary', t.text2)
+    r.style.setProperty('--text-muted', t.text3)
+    r.style.setProperty('--accent', t.accent)
+    r.style.setProperty('--accent-dim', t.accent + (t.accent.indexOf('#') === 0 ? '0f' : '0.06'))
+    r.style.setProperty('--accent-glow', t.accent + (t.accent.indexOf('#') === 0 ? '1a' : '0.1'))
+    r.style.setProperty('--glass-bg', t.glassBg)
+    r.style.setProperty('--glass-text', t.glassText)
+    r.style.setProperty('--glass-border', t.glassBorder)
+    r.style.setProperty('--glass-shimmer', t.glassShimmer)
     var meta = document.querySelector('meta[name="theme-color"]')
     if (meta) meta.setAttribute('content', t.bg2)
     localStorage.setItem('xolerc_theme', name)
-    document.querySelectorAll('.theme-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.theme === name) })
+    var btns = document.querySelectorAll('.theme-btn')
+    for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', btns[i].dataset.theme === name)
   }
 
   function initTheme() {
@@ -172,36 +185,47 @@
   }
 
   var LANG = {
-    uz: { 'nav.home': 'Ish maydoni', 'nav.chat': 'Chat', 'nav.playme': 'Pleer', 'nav.projects': 'Loyihalar', 'nav.settings': 'Sozlamalar', 'bn.home': 'Asosiy', 'bn.chat': 'Chat', 'bn.playme': 'Pleer', 'bn.projects': 'Loyihalar', 'bn.settings': 'Sozlamalar', 'hero.badge': 'DASTURCHI • DIZAYNER • MUHANDIS', 'hero.desc': 'Frontend arxitektori. Tizimlar quruvchi. Interfeyslar yaratuvchi.', 'hero.projects': 'Loyihalar', 'hero.chat': 'Chat', 'hero.contact': 'Aloqa', 'chat.title': 'Xabarlar', 'chat.online': 'online', 'playme.title': 'Pleer', 'playme.desc': 'Video darsliklar to\'plami', 'playme.list': 'Pleer ro\'yxati', 'projects.title': 'Loyihalar', 'projects.desc': 'GitHub\'dagi barcha ochiq manbali loyihalar', 'projects.search': 'Loyihalarni qidirish...', 'contact.title': 'Aloqa', 'contact.desc': 'Loyihalar va hamkorlik uchun', 'settings.title': 'Sozlamalar', 'settings.desc': 'Ilova sozlamalari va yuklamalar', 'settings.theme': 'Interfeys temasi', 'settings.theme.desc': 'Ilova ko\'rinishini o\'zingizga moslang', 'settings.notif': 'Bildirishnomalar', 'settings.cache': 'Keshni tozalash', 'settings.cache.clear': 'Tozalash', 'settings.lang': 'Til', 'loader.text': 'Tizim yuklanmoqda...', 'chat.empty': 'Xabarlar yo\'q', 'chat.input': 'Xabar yozing...', 'chat.main': 'Umumiy Chat', 'chat.main.sub': 'Barcha xabarlar' },
-    en: { 'nav.home': 'Workspace', 'nav.chat': 'Chat', 'nav.playme': 'Player', 'nav.projects': 'Projects', 'nav.settings': 'Settings', 'bn.home': 'Home', 'bn.chat': 'Chat', 'bn.playme': 'Player', 'bn.projects': 'Projects', 'bn.settings': 'Settings', 'hero.badge': 'DEVELOPER • DESIGNER • ENGINEER', 'hero.desc': 'Frontend architect. System builder. Interface creator.', 'hero.projects': 'Projects', 'hero.chat': 'Chat', 'hero.contact': 'Contact', 'chat.title': 'Messages', 'chat.online': 'online', 'playme.title': 'Player', 'playme.desc': 'Video tutorial collection', 'playme.list': 'Playlist', 'projects.title': 'Projects', 'projects.desc': 'All open-source projects on GitHub', 'projects.search': 'Search projects...', 'contact.title': 'Contact', 'contact.desc': 'For projects and collaboration', 'settings.title': 'Settings', 'settings.desc': 'App settings and downloads', 'settings.theme': 'Theme', 'settings.theme.desc': 'Customize the app appearance', 'settings.notif': 'Notifications', 'settings.cache': 'Clear cache', 'settings.cache.clear': 'Clear', 'settings.lang': 'Language', 'loader.text': 'Loading system...', 'chat.empty': 'No messages', 'chat.input': 'Write a message...', 'chat.main': 'General Chat', 'chat.main.sub': 'All messages' },
-    ru: { 'nav.home': 'Рабочее место', 'nav.chat': 'Чат', 'nav.playme': 'Плеер', 'nav.projects': 'Проекты', 'nav.settings': 'Настройки', 'bn.home': 'Главная', 'bn.chat': 'Чат', 'bn.playme': 'Плеер', 'bn.projects': 'Проекты', 'bn.settings': 'Настройки', 'hero.badge': 'РАЗРАБОТЧИК • ДИЗАЙНЕР • ИНЖЕНЕР', 'hero.desc': 'Фронтенд-архитектор. Строитель систем. Создатель интерфейсов.', 'hero.projects': 'Проекты', 'hero.chat': 'Чат', 'hero.contact': 'Контакты', 'chat.title': 'Сообщения', 'chat.online': 'онлайн', 'playme.title': 'Плеер', 'playme.desc': 'Коллекция видеоуроков', 'playme.list': 'Плейлист', 'projects.title': 'Проекты', 'projects.desc': 'Все открытые проекты на GitHub', 'projects.search': 'Поиск проектов...', 'contact.title': 'Контакты', 'contact.desc': 'Для проектов и сотрудничества', 'settings.title': 'Настройки', 'settings.desc': 'Настройки приложения и загрузки', 'settings.theme': 'Тема', 'settings.theme.desc': 'Настройте внешний вид приложения', 'settings.notif': 'Уведомления', 'settings.cache': 'Очистить кеш', 'settings.cache.clear': 'Очистить', 'settings.lang': 'Язык', 'loader.text': 'Загрузка системы...', 'chat.empty': 'Нет сообщений', 'chat.input': 'Напишите сообщение...', 'chat.main': 'Общий чат', 'chat.main.sub': 'Все сообщения' }
+    uz: { 'nav.home': 'Ish maydoni', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Pleer', 'nav.projects': 'Loyihalar', 'nav.settings': 'Sozlamalar', 'bn.home': 'Asosiy', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Pleer', 'bn.projects': 'Loyihalar', 'bn.settings': 'Sozlamalar', 'hero.badge': 'DASTURCHI • DIZAYNER • MUHANDIS', 'hero.desc': 'Frontend arxitektori. Tizimlar quruvchi. Interfeyslar yaratuvchi.', 'hero.projects': 'Loyihalar', 'hero.chat': 'Chat', 'hero.contact': 'Aloqa', 'chat.title': 'Xabarlar', 'chat.online': 'online', 'chat.loading': 'Xabarlar yuklanmoqda...', 'playme.title': 'Pleer', 'playme.desc': 'Video darsliklar to\'plami', 'playme.list': 'Pleer ro\'yxati', 'projects.title': 'Loyihalar', 'projects.desc': 'GitHub\'dagi barcha ochiq manbali loyihalar', 'projects.search': 'Loyihalarni qidirish...', 'contact.title': 'Aloqa', 'contact.desc': 'Loyihalar va hamkorlik uchun', 'settings.title': 'Sozlamalar', 'settings.desc': 'Ilova sozlamalari va yuklamalar', 'settings.theme': 'Interfeys temasi', 'settings.theme.desc': 'Ilova ko\'rinishini o\'zingizga moslang', 'settings.notif': 'Bildirishnomalar', 'settings.notif_sound': 'Xabar ovozi', 'settings.dnd': 'Menga yozmaslik', 'settings.cache': 'Keshni tozalash', 'settings.cache.clear': 'Tozalash', 'settings.lang': 'Til', 'loader.text': 'Tizim yuklanmoqda...', 'chat.empty': 'Xabarlar yo\'q', 'chat.input': 'Xabar yozing...', 'chat.main': 'Umumiy Chat', 'chat.main.sub': 'Barcha xabarlar' },
+    en: { 'nav.home': 'Workspace', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Player', 'nav.projects': 'Projects', 'nav.settings': 'Settings', 'bn.home': 'Home', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Player', 'bn.projects': 'Projects', 'bn.settings': 'Settings', 'hero.badge': 'DEVELOPER • DESIGNER • ENGINEER', 'hero.desc': 'Frontend architect. System builder. Interface creator.', 'hero.projects': 'Projects', 'hero.chat': 'Chat', 'hero.contact': 'Contact', 'chat.title': 'Messages', 'chat.online': 'online', 'chat.loading': 'Loading messages...', 'playme.title': 'Player', 'playme.desc': 'Video tutorial collection', 'playme.list': 'Playlist', 'projects.title': 'Projects', 'projects.desc': 'All open-source projects on GitHub', 'projects.search': 'Search projects...', 'contact.title': 'Contact', 'contact.desc': 'For projects and collaboration', 'settings.title': 'Settings', 'settings.desc': 'App settings and downloads', 'settings.theme': 'Theme', 'settings.theme.desc': 'Customize the app appearance', 'settings.notif': 'Notifications', 'settings.notif_sound': 'Message sound', 'settings.dnd': 'Do not disturb', 'settings.cache': 'Clear cache', 'settings.cache.clear': 'Clear', 'settings.lang': 'Language', 'loader.text': 'Loading system...', 'chat.empty': 'No messages', 'chat.input': 'Write a message...', 'chat.main': 'General Chat', 'chat.main.sub': 'All messages' },
+    ru: { 'nav.home': 'Рабочее место', 'nav.chat': 'Чат', 'nav.video': 'Видео', 'nav.playme': 'Плеер', 'nav.projects': 'Проекты', 'nav.settings': 'Настройки', 'bn.home': 'Главная', 'bn.chat': 'Чат', 'bn.video': 'Видео', 'bn.playme': 'Плеер', 'bn.projects': 'Проекты', 'bn.settings': 'Настройки', 'hero.badge': 'РАЗРАБОТЧИК • ДИЗАЙНЕР • ИНЖЕНЕР', 'hero.desc': 'Фронтенд-архитектор. Строитель систем. Создатель интерфейсов.', 'hero.projects': 'Проекты', 'hero.chat': 'Чат', 'hero.contact': 'Контакты', 'chat.title': 'Сообщения', 'chat.online': 'онлайн', 'chat.loading': 'Загрузка сообщений...', 'playme.title': 'Плеер', 'playme.desc': 'Коллекция видеоуроков', 'playme.list': 'Плейлист', 'projects.title': 'Проекты', 'projects.desc': 'Все открытые проекты на GitHub', 'projects.search': 'Поиск проектов...', 'contact.title': 'Контакты', 'contact.desc': 'Для проектов и сотрудничества', 'settings.title': 'Настройки', 'settings.desc': 'Настройки приложения и загрузки', 'settings.theme': 'Тема', 'settings.theme.desc': 'Настройте внешний вид приложения', 'settings.notif': 'Уведомления', 'settings.notif_sound': 'Звук сообщения', 'settings.dnd': 'Не беспокоить', 'settings.cache': 'Очистить кеш', 'settings.cache.clear': 'Очистить', 'settings.lang': 'Язык', 'loader.text': 'Загрузка системы...', 'chat.empty': 'Нет сообщений', 'chat.input': 'Напишите сообщение...', 'chat.main': 'Общий чат', 'chat.main.sub': 'Все сообщения' }
   }
 
   window.applyLanguage = function (lang) {
     var t = LANG[lang] || LANG.uz
-    document.querySelectorAll('[data-i18n]').forEach(function (el) { var k = el.dataset.i18n; if (t[k]) el.textContent = t[k] })
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { var k = el.dataset.i18nPlaceholder; if (t[k]) el.placeholder = t[k] })
+    var els = document.querySelectorAll('[data-i18n]')
+    for (var i = 0; i < els.length; i++) { var k = els[i].dataset.i18n; if (t[k]) els[i].textContent = t[k] }
+    var phs = document.querySelectorAll('[data-i18n-placeholder]')
+    for (var j = 0; j < phs.length; j++) { var pk = phs[j].dataset.i18nPlaceholder; if (t[pk]) phs[j].placeholder = t[pk] }
     localStorage.setItem('xolerc_lang', lang)
   }
 
   function initLang() { window.applyLanguage(localStorage.getItem('xolerc_lang') || 'uz') }
 
   function initSettings() {
-    var nt = document.getElementById('notifToggle'), cc = document.getElementById('clearCacheBtn'), ls = document.getElementById('langSelect')
+    var nt = document.getElementById('notifToggle'), nst = document.getElementById('notifSoundToggle'), dt = document.getElementById('dndToggle'), cc = document.getElementById('clearCacheBtn'), ls = document.getElementById('langSelect')
     if (nt) {
       if (localStorage.getItem('xolerc_notif') === 'off') { var inp = nt.querySelector('input'); if (inp) inp.checked = false }
       nt.addEventListener('change', function () { var inp = this.querySelector('input'); localStorage.setItem('xolerc_notif', inp && inp.checked ? 'on' : 'off') })
     }
+    if (nst) {
+      if (localStorage.getItem('xolerc_notif_sound') === 'off') { var inp2 = nst.querySelector('input'); if (inp2) inp2.checked = false }
+      nst.addEventListener('change', function () { var inp2 = this.querySelector('input'); var val = inp2 && inp2.checked ? 'on' : 'off'; localStorage.setItem('xolerc_notif_sound', val); if (window.setNotifSound) window.setNotifSound(val === 'on') })
+    }
+    if (dt) {
+      if (localStorage.getItem('xolerc_dnd') === 'on') { var inp3 = dt.querySelector('input'); if (inp3) inp3.checked = true }
+      dt.addEventListener('change', function () { var inp3 = this.querySelector('input'); localStorage.setItem('xolerc_dnd', inp3 && inp3.checked ? 'on' : 'off') })
+    }
     if (cc) {
-      function size() {
-        var total = 0; for (var k in localStorage) { try { var v = localStorage.getItem(k); if (v) total += v.length * 2 } catch (e) { } }
-        var s = total > 1048576 ? (total / 1048576).toFixed(1) + ' MB' : total > 1024 ? Math.round(total / 1024) + ' KB' : total + ' B'
-        var el = document.getElementById('cacheSize'); if (el) el.textContent = s
+      var cacheSizeEl = document.getElementById('cacheSize')
+      function updateCacheSize() {
+        var total = 0; for (var k in localStorage) { try { var v = localStorage.getItem(k); if (v) total += v.length * 2 } catch (e) {} }
+        if (cacheSizeEl) cacheSizeEl.textContent = total > 1048576 ? (total / 1048576).toFixed(1) + ' MB' : total > 1024 ? Math.round(total / 1024) + ' KB' : total + ' B'
       }
-      size()
+      updateCacheSize()
       cc.addEventListener('click', function () {
-        Object.keys(localStorage).filter(function (k) { return !k.startsWith('xolerc_') }).forEach(function (k) { localStorage.removeItem(k) })
-        size()
+        var keys = Object.keys(localStorage); var xolercPrefix = 'xolerc_'
+        for (var i = 0; i < keys.length; i++) { if (keys[i].indexOf(xolercPrefix) !== 0) localStorage.removeItem(keys[i]) }
+        updateCacheSize()
       })
     }
     if (ls) {
@@ -210,38 +234,42 @@
     }
   }
 
-  window.closeModal = function (id) {
-    var m = document.getElementById(id)
-    if (m) { m.classList.remove('open'); m.style.display = 'none' }
+  window.initLoadingOverlay = function () {
+    var o = document.getElementById('loadingOverlay')
+    if (!o) return
+    var start = Date.now()
+    function hide() {
+      var elapsed = Date.now() - start
+      var delay = elapsed < 2000 ? 2000 - elapsed : 0
+      setTimeout(function () {
+        o.classList.add('fade-out')
+        setTimeout(function () { o.style.display = 'none' }, 500)
+      }, delay)
+    }
+    if (document.readyState === 'complete') hide()
+    else window.addEventListener('load', hide)
   }
-
-  function initChatToggle() {
-    document.addEventListener('click', function (e) {
-      var toggle = e.target.closest ? e.target.closest('#chatToggle') : null
-      if (!toggle) return
-      var wrap = document.getElementById('chatConvsWrap')
-      if (wrap) wrap.classList.toggle('collapsed')
-    })
-  }
-
-  window.updateOnlineBadge = function (count) { var el = document.getElementById('onlineCount'); if (el) el.textContent = count + ' online' }
+  window.closeModal = function (id) { var m = document.getElementById(id); if (m) { m.classList.remove('open'); m.style.display = 'none' } }
+  window.updateOnlineBadge = function (count) { var el = document.getElementById('onlineCount'); if (el) { var t = LANG[localStorage.getItem('xolerc_lang') || 'uz']; el.textContent = count + ' ' + (t['chat.online'] || 'online') } }
 
   document.addEventListener('DOMContentLoaded', function () {
     var inits = [
       { fn: initEngine, name: 'Engine' }, { fn: initMusic, name: 'Music' },
-      { fn: initChat, name: 'Chat' }, { fn: initPlayme, name: 'Playme' },
+      { fn: initChat, name: 'Chat' }, { fn: initYoutube, name: 'Youtube' }, { fn: initPlayme, name: 'Playme' },
       { fn: initRepos, name: 'Repos' }, { fn: initNotifications, name: 'Notifications' },
       { fn: initLoadingOverlay, name: 'Loading' }, { fn: initCanvas, name: 'Canvas' },
       { fn: initClock, name: 'Clock' }, { fn: initQuotes, name: 'Quotes' },
       { fn: initTheme, name: 'Theme' }, { fn: initLang, name: 'Lang' },
-      { fn: initSettings, name: 'Settings' }, { fn: initChatToggle, name: 'ChatToggle' }
+      { fn: initSettings, name: 'Settings' }
     ]
-    inits.forEach(function (item) { try { item.fn() } catch (e) { console.error(item.name + ' init error:', e) } })
+    for (var i = 0; i < inits.length; i++) { try { inits[i].fn() } catch (e) { console.error(inits[i].name + ' init error:', e) } }
 
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-overlay.open').forEach(function (m) { m.classList.remove('open'); m.style.display = 'none' })
-        document.querySelectorAll('.msg-reactions').forEach(function (el) { el.style.display = 'none' })
+        var modals = document.querySelectorAll('.modal-overlay.open'); for (var m = 0; m < modals.length; m++) { modals[m].classList.remove('open'); setTimeout(function (mm) { return function () { mm.style.display = 'none' } }(modals[m]), 250) }
+        var reactions = document.querySelectorAll('.msg-reactions'); for (var r = 0; r < reactions.length; r++) reactions[r].style.display = 'none'
+        var iv = document.getElementById('imgViewer'); if (iv && iv.classList.contains('open')) { iv.classList.remove('open'); iv.style.display = 'none' }
+        var pp = document.getElementById('userProfilePopup'); if (pp && pp.classList.contains('open')) { pp.classList.remove('open'); pp.style.display = 'none' }
       }
     })
     DB.incrementVisits()

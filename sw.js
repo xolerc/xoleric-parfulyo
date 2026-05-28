@@ -1,16 +1,19 @@
-const CACHE = 'xoleric-v2';
+const CACHE = 'xoleric-v3';
 const ASSETS = [
   '.',
   'index.html',
   'style.css',
-  'manifest.json',
+  'pwa-manifest.json',
   'icon.png',
   'js/db.js',
   'js/engine.js',
   'js/main.js',
   'js/chat.js',
   'js/repos.js',
+  'js/youtube.js',
   'js/playme.js',
+  'js/music.js',
+  'bg-music.mp3',
 ];
 
 self.addEventListener('install', e => {

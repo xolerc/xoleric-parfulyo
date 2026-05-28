@@ -6,12 +6,22 @@
     if (!audio || !btn) return
     var playing = false, wasPlaying = false
     btn.addEventListener('click', function () {
-      if (playing) { audio.pause(); btn.classList.remove('playing') } else { audio.play().catch(function () { }); btn.classList.add('playing') }
-      playing = !playing
+      if (playing) { audio.pause(); btn.classList.remove('playing'); playing = false }
+      else {
+        var p = audio.play()
+        if (p && p.catch) p.catch(function () {
+          btn.classList.remove('playing'); playing = false
+        })
+        if (!audio.paused) { btn.classList.add('playing'); playing = true }
+      }
     })
     document.addEventListener('visibilitychange', function () {
       if (document.hidden && playing) { audio.pause(); wasPlaying = true }
-      else if (!document.hidden && wasPlaying) { audio.play().catch(function () { }); wasPlaying = false }
+      else if (!document.hidden && wasPlaying) {
+        var p = audio.play()
+        if (p && p.catch) p.catch(function () {})
+        wasPlaying = false
+      }
     })
   }
 })()

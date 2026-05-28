@@ -55,6 +55,7 @@
     <nav class="nav" aria-label="Asosiy navigatsiya">
       <button class="nav-btn active" data-tab="home" role="tab" aria-selected="true"><span class="nav-glow"></span><span data-i18n="nav.home">Ish maydoni</span></button>
       <button class="nav-btn" data-tab="chat" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.chat">Chat</span></button>
+      <button class="nav-btn" data-tab="video" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.video">Video</span></button>
       <button class="nav-btn" data-tab="playme" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.playme">Pleer</span></button>
       <button class="nav-btn" data-tab="projects" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.projects">Loyihalar</span></button>
       <button class="nav-btn" data-tab="settings" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.settings">Sozlamalar</span></button>
@@ -124,7 +125,7 @@
             <div class="chat-list-view" id="chatListView">
               <div class="chat-list-appbar">
                 <div class="chat-list-appbar-left">
-                  <span class="chat-list-title">Xabarlar</span>
+                  <span class="chat-list-title" data-i18n="chat.title">Xabarlar</span>
                 </div>
                 <div class="chat-list-appbar-right">
                 </div>
@@ -162,19 +163,64 @@
                   <button class="chat-action-btn chat-room-info-btn" id="chatRoomInfoBtn" title="Ma'lumot"></button>
                 </div>
               </div>
+              <div class="chat-search-wrap" id="chatSearchWrap" style="display:none">
+                <input class="chat-search" id="chatSearch" placeholder="Xabarlarni qidirish..." />
+              </div>
               <div class="chat-msgs" id="chatMessages">
                 <div class="chat-empty">Konversiyani tanlang</div>
+              </div>
+              <div class="chat-typing" id="chatTyping">
+                <span id="chatTypingName"></span>
+                <span class="chat-typing-dots"><span></span><span></span><span></span></span>
               </div>
               <div id="chatJoinArea" class="chat-join-area" style="display:none"></div>
               <div class="chat-input-bar" id="chatInputArea" style="display:none">
                 <button class="chat-media-btn" id="chatMediaBtn" title="Rasm yuborish"></button>
                 <button class="chat-voice-btn" id="chatVoiceBtn" title="Ovozli xabar"></button>
                 <div class="chat-input-wrap">
-                  <textarea class="chat-input" id="chatInput" placeholder="Xabar yozing..." rows="1"></textarea>
+                  <textarea class="chat-input" id="chatInput" data-i18n-placeholder="chat.input" placeholder="Xabar yozing..." rows="1"></textarea>
                 </div>
                 <button class="chat-send-btn" id="chatSendBtn"></button>
               </div>
               <input type="file" id="chatMediaInput" accept="image/*" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== XOLERIC VIDEO (YouTube) ========== -->
+        <div class="tab-content" id="tab-video">
+          <div class="yt-page">
+            <div class="yt-header">
+              <div class="yt-brand">
+                <span class="yt-logo">▶</span>
+                <span class="yt-brand-text">XOLERIC <span style="color:var(--yt-red)">Video</span></span>
+              </div>
+              <div class="yt-header-right">
+                <div class="yt-search-wrap">
+                  <input class="yt-search" id="ytSearch" placeholder="Qidirish..." />
+                </div>
+              </div>
+            </div>
+            <div class="yt-content">
+              <div class="yt-loader" id="ytLoader">
+                <div class="mini-loader"></div>
+                <span>Yuklanmoqda...</span>
+              </div>
+              <div class="yt-grid" id="ytGrid"></div>
+              <div class="yt-error" id="ytError" style="display:none">
+                <span>Xatolik yuz berdi. Keyinroq urinib ko'ring.</span>
+              </div>
+            </div>
+          </div>
+          <div class="yt-player-overlay" id="ytPlayerOverlay" style="display:none">
+            <div class="yt-player-wrap">
+              <div class="yt-player-topbar">
+                <span class="yt-player-title" id="ytPlayerTitle">Video</span>
+                <button class="yt-close-btn" id="ytClosePlayer">✕</button>
+              </div>
+              <div class="yt-player-container">
+                <div id="ytPlayer"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -320,6 +366,18 @@
               </label>
             </div>
             <div class="settings-item">
+              <span class="settings-item-label" data-i18n="settings.notif_sound">Xabar ovozi</span>
+              <label class="switch" id="notifSoundToggle">
+                <input type="checkbox" checked /><span class="switch-slider"></span>
+              </label>
+            </div>
+            <div class="settings-item">
+              <span class="settings-item-label" data-i18n="settings.dnd">Menga yozmaslik</span>
+              <label class="switch" id="dndToggle">
+                <input type="checkbox" /><span class="switch-slider"></span>
+              </label>
+            </div>
+            <div class="settings-item">
               <span class="settings-item-label" data-i18n="settings.cache">Keshni tozalash</span>
               <div class="settings-item-right">
                 <span class="settings-cache-size" id="cacheSize">0 MB</span>
@@ -357,6 +415,10 @@
       <button class="bn-btn" data-tab="chat" role="tab" aria-selected="false">
         <span class="bn-icon bn-icon-chat" aria-hidden="true"></span>
         <span class="bn-label" data-i18n="bn.chat">Chat</span>
+      </button>
+      <button class="bn-btn" data-tab="video" role="tab" aria-selected="false">
+        <span class="bn-icon bn-icon-video" aria-hidden="true"></span>
+        <span class="bn-label" data-i18n="bn.video">Video</span>
       </button>
       <button class="bn-btn" data-tab="playme" role="tab" aria-selected="false">
         <span class="bn-icon bn-icon-play" aria-hidden="true"></span>
@@ -399,6 +461,20 @@
 
 
 
+<!-- Image viewer -->
+<div class="img-viewer-overlay" id="imgViewer" onclick="this.classList.remove('open');this.style.display='none'">
+  <img id="imgViewerSrc" src="" alt="" />
+</div>
+
+<!-- User profile popup -->
+<div class="user-profile-popup" id="userProfilePopup">
+  <button class="popup-close" onclick="document.getElementById('userProfilePopup').classList.remove('open');document.getElementById('userProfilePopup').style.display='none'">&times;</button>
+  <div class="popup-avatar" id="popupAvatar">?</div>
+  <div class="popup-name" id="popupName">User</div>
+  <div class="popup-bio" id="popupBio"></div>
+  <div class="popup-status" id="popupStatus">offline</div>
+</div>
+
 <div id="chatToast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -408,6 +484,7 @@
 <script src="js/music.js"></script>
 <script src="js/playme.js"></script>
 <script src="js/chat.js"></script>
+<script src="js/youtube.js"></script>
 <script src="js/repos.js"></script>
 <script src="js/main.js"></script>
 <script>

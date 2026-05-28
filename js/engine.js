@@ -1,22 +1,24 @@
 (function () {
   'use strict'
-  var TABS = ['home', 'chat', 'playme', 'projects', 'contact', 'settings']
-  var currentTab = 0
-  var tabStack = [0]
+  var TABS = ['home', 'chat', 'video', 'playme', 'projects', 'contact', 'settings']
+  var currentTab = 0, tabStack = [0]
 
   function navigateTo(idx, record) {
     if (idx < 0 || idx >= TABS.length || idx === currentTab) return
     currentTab = idx
-    document.querySelectorAll('.tab-content').forEach(function (el, i) {
-      el.classList.toggle('active', i === idx)
-      el.setAttribute('aria-hidden', i !== idx ? 'true' : 'false')
-    })
-    document.querySelectorAll('.nav-btn, .bn-btn').forEach(function (b) {
-      var a = b.dataset.tab === TABS[idx]
-      b.classList.toggle('active', a)
-      b.setAttribute('aria-selected', String(a))
-    })
+    var tabs = document.querySelectorAll('.tab-content')
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.toggle('active', i === idx)
+      tabs[i].setAttribute('aria-hidden', i !== idx ? 'true' : 'false')
+    }
+    var btns = document.querySelectorAll('.nav-btn, .bn-btn')
+    for (var j = 0; j < btns.length; j++) {
+      var a = btns[j].dataset.tab === TABS[idx]
+      btns[j].classList.toggle('active', a)
+      btns[j].setAttribute('aria-selected', String(a))
+    }
     if (record) { tabStack.push(idx); history.pushState({ tab: idx }, '') }
+    document.dispatchEvent(new CustomEvent('tabChange', { detail: { tab: TABS[idx], index: idx } }))
   }
 
   window.switchTab = function (name) {
@@ -38,7 +40,7 @@
     play: function (id) {
       this.stopAllExcept(id)
       var p = this.players.get(id)
-      if (p) { this.activeId = id; p.play().catch(function () { }) }
+      if (p) { this.activeId = id; p.play().catch(function () {}) }
     },
     pause: function (id) {
       var p = this.players.get(id)
@@ -54,15 +56,16 @@
       if (!p) return false
       try { await p.requestPictureInPicture(); return true } catch (e) { return false }
     },
-    exitPip: function () { if (document.pictureInPictureElement) document.exitPictureInPicture().catch(function () { }) },
+    exitPip: function () { if (document.pictureInPictureElement) document.exitPictureInPicture().catch(function () {}) },
     isPipActive: function () { return !!document.pictureInPictureElement }
   }
   window.controller = new VideoController()
 
   window.initEngine = function () {
-    document.querySelectorAll('.nav-btn, .bn-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () { window.switchTab(btn.dataset.tab || '') })
-    })
+    var btns = document.querySelectorAll('.nav-btn, .bn-btn')
+    for (var b = 0; b < btns.length; b++) {
+      btns[b].addEventListener('click', function () { window.switchTab(this.dataset.tab || '') })
+    }
     var ws = document.querySelector('.workspace')
     if (ws) {
       var sx = 0, dx = 0, dragging = false
@@ -78,16 +81,13 @@
       if (e.state && e.state.tab !== undefined && e.state.tab !== currentTab) { navigateTo(e.state.tab, false); return }
       if (tabStack.length > 1) { tabStack.pop(); var p = tabStack[tabStack.length - 1]; history.replaceState({ tab: p }, ''); navigateTo(p, false) }
     })
-    var hash = location.hash.replace('#', '')
-    var start = (hash && TABS.indexOf(hash) >= 0) ? TABS.indexOf(hash) : 0
+    var hash = location.hash.replace('#', ''), start = (hash && TABS.indexOf(hash) >= 0) ? TABS.indexOf(hash) : 0
     currentTab = start; tabStack.length = 0; tabStack.push(start)
     history.replaceState({ tab: start }, '')
-    document.querySelectorAll('.tab-content').forEach(function (el, i) {
-      el.classList.toggle('active', i === start); el.setAttribute('aria-hidden', i !== start ? 'true' : 'false')
-    })
-    document.querySelectorAll('.nav-btn, .bn-btn').forEach(function (b) {
-      var a = b.dataset.tab === TABS[start]; b.classList.toggle('active', a); b.setAttribute('aria-selected', String(a))
-    })
+    var tabs = document.querySelectorAll('.tab-content')
+    for (var i = 0; i < tabs.length; i++) { tabs[i].classList.toggle('active', i === start); tabs[i].setAttribute('aria-hidden', i !== start ? 'true' : 'false') }
+    var nav = document.querySelectorAll('.nav-btn, .bn-btn')
+    for (var n = 0; n < nav.length; n++) { var a = nav[n].dataset.tab === TABS[start]; nav[n].classList.toggle('active', a); nav[n].setAttribute('aria-selected', String(a)) }
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) {
         var a = window.controller.getActive()

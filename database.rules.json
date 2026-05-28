@@ -28,6 +28,13 @@
         },
         "info": {
           ".validate": "newData.hasChildren(['lastActivity'])"
+        },
+        "typing": {
+          "$userId": {
+            ".validate": "newData.hasChildren(['name', 'time'])",
+            "name": { ".validate": "newData.isString() && newData.val().length <= 30" },
+            "time": { ".validate": "newData.isNumber()" }
+          }
         }
       }
     },
