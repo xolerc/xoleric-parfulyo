@@ -1,4 +1,4 @@
-const CACHE = 'xoleric-v3';
+const CACHE = 'xoleric-v4';
 const ASSETS = [
   '.',
   'index.html',
@@ -30,7 +30,11 @@ self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys => Promise.all(
       keys.filter(k => k !== CACHE).map(k => caches.delete(k))
-    )).then(() => self.clients.claim())
+    )).then(() => self.clients.claim()).then(() => {
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(c => c.postMessage({ type: 'SW_UPDATED' }))
+      })
+    })
   );
 });
 
