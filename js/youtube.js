@@ -2,8 +2,19 @@
   'use strict'
   var API_KEY = 'AIzaSyAwpEdIA_5_1aDPoMP0Q_ROE_zTrhoxwKs'
   var CHANNEL_ID = 'UCkEM86vtj0ekHTCBfA6qTFQ'
-  var CHANNEL_ID_KEY = 'xolerc_yt_channel'
-  var cache = { channelId: CHANNEL_ID, videos: null }
+  var CACHE_TTL = 30 * 60 * 1000
+  var searchCache = {}
+  var abortCtrl = null, searchTimer = null
+
+  var CATEGORIES = [
+    { id: 'all', label: 'Barcha', query: '' },
+    { id: 'trending', label: 'Trends', query: 'trending uz'},
+    { id: 'tech', label: 'Texnologiya', query: 'texnologiya 2026' },
+    { id: 'music', label: 'Musiqa', query: 'musiqa 2026' },
+    { id: 'coding', label: 'Dasturlash', query: 'dasturlash 2026' },
+    { id: 'gaming', label: "O'yin", query: "o'yin 2026" }
+  ]
+  var currentCategory = 'all', currentQuery = ''
 
   function $(id) { return document.getElementById(id) }
   function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
@@ -15,41 +26,30 @@
   }
 
   async function ytFetch(path, params) {
-    var resp = await fetch(ytApiUrl(path, params))
+    if (abortCtrl) abortCtrl.abort()
+    abortCtrl = new AbortController()
+    var resp = await fetch(ytApiUrl(path, params), { signal: abortCtrl.signal })
     var data = await resp.json()
     if (data.error) throw new Error(data.error.message || 'YouTube API xatosi')
     if (!resp.ok) throw new Error('HTTP ' + resp.status)
     return data
   }
 
-  async function getChannelId() {
-    return CHANNEL_ID
+  function cacheKey(query) { return 'yt_' + query.toLowerCase().replace(/\s+/g, '_') }
+
+  function getCached(query) {
+    var key = cacheKey(query), raw = localStorage.getItem(key)
+    if (!raw) return null
+    try {
+      var c = JSON.parse(raw)
+      if (Date.now() - c.ts < CACHE_TTL) return c.data
+    } catch (e) {}
+    return null
   }
 
-  async function fetchVideos() {
-    var channelId = await getChannelId()
-    var data = await ytFetch('search', { part: 'snippet', channelId: channelId, order: 'date', maxResults: 30, type: 'video' })
-    if (!data.items || !data.items.length) throw new Error('Videolar topilmadi')
-    var ids = data.items.map(function (v) { return v.id.videoId }).join(',')
-    var statsData = await ytFetch('videos', { part: 'statistics', id: ids })
-    var statsMap = {}
-    if (statsData.items) {
-      for (var i = 0; i < statsData.items.length; i++) {
-        var s = statsData.items[i]
-        statsMap[s.id] = s.statistics
-      }
-    }
-    return data.items.map(function (v) {
-      var st = statsMap[v.id.videoId] || {}
-      return {
-        id: v.id.videoId,
-        title: v.snippet.title,
-        thumb: v.snippet.thumbnails.high ? v.snippet.thumbnails.high.url : (v.snippet.thumbnails.medium ? v.snippet.thumbnails.medium.url : v.snippet.thumbnails.default.url),
-        published: v.snippet.publishedAt,
-        views: st.viewCount || '0',
-        channelTitle: v.snippet.channelTitle
-      }
-    })
+  function setCached(query, data) {
+    var key = cacheKey(query)
+    localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: data }))
   }
 
   function formatViews(n) {
@@ -70,11 +70,73 @@
     return Math.floor(days / 365) + ' yil oldin'
   }
 
+  async function searchVideos(query) {
+    var cached = getCached(query)
+    if (cached) return cached
+    var data = await ytFetch('search', { part: 'snippet', q: query, type: 'video', maxResults: 30, safeSearch: 'none' })
+    if (!data.items || !data.items.length) throw new Error('Video topilmadi')
+    var ids = [], items = []
+    for (var i = 0; i < data.items.length; i++) {
+      var v = data.items[i]
+      if (v.id && v.id.videoId) { ids.push(v.id.videoId); items.push(v) }
+    }
+    if (!ids.length) throw new Error('Video topilmadi')
+    var statsData = await ytFetch('videos', { part: 'statistics', id: ids.join(',') })
+    var statsMap = {}
+    if (statsData.items) {
+      for (var j = 0; j < statsData.items.length; j++) {
+        var s = statsData.items[j]
+        statsMap[s.id] = s.statistics
+      }
+    }
+    var result = items.map(function (v) {
+      var st = statsMap[v.id.videoId] || {}
+      return {
+        id: v.id.videoId,
+        title: v.snippet.title,
+        thumb: v.snippet.thumbnails.high ? v.snippet.thumbnails.high.url : (v.snippet.thumbnails.medium ? v.snippet.thumbnails.medium.url : v.snippet.thumbnails.default.url),
+        published: v.snippet.publishedAt,
+        views: st.viewCount || '0',
+        channelTitle: v.snippet.channelTitle,
+        channelId: v.snippet.channelId
+      }
+    })
+    setCached(query, result)
+    return result
+  }
+
+  async function fetchChannelVideos() {
+    var cached = getCached('__channel__')
+    if (cached) return cached
+    var data = await ytFetch('search', { part: 'snippet', channelId: CHANNEL_ID, order: 'date', maxResults: 30, type: 'video' })
+    if (!data.items || !data.items.length) throw new Error('Kanalda video yo\'q')
+    var ids = data.items.map(function (v) { return v.id.videoId }).join(',')
+    var statsData = await ytFetch('videos', { part: 'statistics', id: ids })
+    var statsMap = {}
+    if (statsData.items) {
+      for (var i = 0; i < statsData.items.length; i++) {
+        var s = statsData.items[i]
+        statsMap[s.id] = s.statistics
+      }
+    }
+    var result = data.items.map(function (v) {
+      var st = statsMap[v.id.videoId] || {}
+      return { id: v.id.videoId, title: v.snippet.title, thumb: v.snippet.thumbnails.high ? v.snippet.thumbnails.high.url : (v.snippet.thumbnails.medium ? v.snippet.thumbnails.medium.url : v.snippet.thumbnails.default.url), published: v.snippet.publishedAt, views: st.viewCount || '0', channelTitle: v.snippet.channelTitle, channelId: v.snippet.channelId }
+    })
+    setCached('__channel__', result)
+    return result
+  }
+
   function renderGrid(videos) {
-    var grid = $('ytGrid'), loader = $('ytLoader'), error = $('ytError')
+    var grid = $('ytGrid'), loader = $('ytLoader'), error = $('ytError'), empty = $('ytEmpty')
     if (!grid) return
-    if (error) error.style.display = 'none'
     if (loader) loader.style.display = 'none'
+    if (error) error.style.display = 'none'
+    if (empty) empty.style.display = 'none'
+    if (!videos || !videos.length) {
+      if (empty) { empty.style.display = 'flex'; grid.innerHTML = '' }
+      return
+    }
     var html = ''
     for (var i = 0; i < videos.length; i++) {
       var v = videos[i]
@@ -85,14 +147,119 @@
     grid.innerHTML = html
   }
 
-  function showError(msg) {
-    var loader = $('ytLoader'), grid = $('ytGrid'), error = $('ytError'), desc = $('ytErrorDesc')
-    if (loader) loader.style.display = 'none'
+  function showLoading() {
+    var loader = $('ytLoader'), grid = $('ytGrid'), error = $('ytError'), empty = $('ytEmpty')
+    if (loader) loader.style.display = 'flex'
     if (grid) grid.innerHTML = ''
-    if (desc && msg) desc.textContent = msg
-    if (error) error.style.display = 'block'
+    if (error) error.style.display = 'none'
+    if (empty) empty.style.display = 'none'
   }
 
+  function showError(msg) {
+    var loader = $('ytLoader'), grid = $('ytGrid'), error = $('ytError'), empty = $('ytEmpty'), desc = $('ytErrorDesc')
+    if (loader) loader.style.display = 'none'
+    if (grid) grid.innerHTML = ''
+    if (empty) empty.style.display = 'none'
+    if (desc && msg) desc.textContent = msg
+    if (error) error.style.display = 'flex'
+  }
+
+  function showEmpty() {
+    var loader = $('ytLoader'), grid = $('ytGrid'), error = $('ytError'), empty = $('ytEmpty')
+    if (loader) loader.style.display = 'none'
+    if (grid) grid.innerHTML = ''
+    if (error) error.style.display = 'none'
+    if (empty) empty.style.display = 'flex'
+  }
+
+  function renderChips(activeId) {
+    var wrap = $('ytChips')
+    if (!wrap) return
+    var html = ''
+    for (var i = 0; i < CATEGORIES.length; i++) {
+      var c = CATEGORIES[i]
+      html += '<button class="yt-chip' + (c.id === activeId ? ' active' : '') + '" data-cat="' + c.id + '">' + c.label + '</button>'
+    }
+    wrap.innerHTML = html
+    wrap.querySelectorAll('.yt-chip').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var catId = el.dataset.cat
+        if (catId === currentCategory) return
+        currentCategory = catId
+        renderChips(catId)
+        loadByCategory(catId)
+      })
+    })
+  }
+
+  async function loadByCategory(catId) {
+    showLoading()
+    var cat = null
+    for (var i = 0; i < CATEGORIES.length; i++) { if (CATEGORIES[i].id === catId) { cat = CATEGORIES[i]; break } }
+    try {
+      if (catId === 'all') {
+        var vids = await fetchChannelVideos()
+        renderGrid(vids)
+      } else if (cat && cat.query) {
+        var results = await searchVideos(cat.query)
+        if (results && results.length) renderGrid(results)
+        else showEmpty()
+      } else {
+        showEmpty()
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') return
+      console.error('YouTube error:', e)
+      showError(e.message || 'Xatolik yuz berdi')
+    }
+  }
+
+  async function doSearch(query) {
+    if (!query || !query.trim()) {
+      currentCategory = 'all'
+      renderChips('all')
+      loadByCategory('all')
+      return
+    }
+    currentQuery = query.trim()
+    currentCategory = ''
+    renderChips('')
+    showLoading()
+    try {
+      var results = await searchVideos(currentQuery)
+      if (results && results.length) renderGrid(results)
+      else showEmpty()
+    } catch (e) {
+      if (e.name === 'AbortError') return
+      console.error('YouTube search error:', e)
+      showError(e.message || 'Xatolik yuz berdi')
+    }
+  }
+
+  function setupSearch() {
+    var input = $('ytSearch')
+    if (!input) return
+    input.addEventListener('input', function () {
+      if (searchTimer) clearTimeout(searchTimer)
+      searchTimer = setTimeout(function () {
+        var q = input.value.trim()
+        if (q.length >= 2) doSearch(q)
+        else if (q.length === 0) {
+          currentCategory = 'all'
+          renderChips('all')
+          loadByCategory('all')
+        }
+      }, 500)
+    })
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        if (searchTimer) clearTimeout(searchTimer)
+        doSearch(input.value.trim())
+      }
+    })
+  }
+
+  // Player overlay
   window.playYTVideo = function (videoId, title) {
     var overlay = $('ytPlayerOverlay'), container = $('ytPlayer'), titleEl = $('ytPlayerTitle')
     if (!overlay || !container) return
@@ -112,37 +279,13 @@
     if (e.key === 'Escape' && $('ytPlayerOverlay') && $('ytPlayerOverlay').style.display === 'flex') closePlayer()
   })
 
-  async function loadVideos() {
-    try {
-      var videos = await fetchVideos()
-      cache.videos = videos
-      renderGrid(videos)
-    } catch (e) {
-      console.error('YouTube load error:', e)
-      showError(e.message || 'Keyinroq urinib ko\'ring.')
-    }
-  }
-
-  var searchTimer = null
-  function setupSearch() {
-    var input = $('ytSearch')
-    if (!input) return
-    input.addEventListener('input', function () {
-      if (searchTimer) clearTimeout(searchTimer)
-      searchTimer = setTimeout(function () {
-        var q = input.value.toLowerCase().trim()
-        var cards = document.querySelectorAll('.yt-card')
-        for (var i = 0; i < cards.length; i++) {
-          cards[i].style.display = q === '' || cards[i].textContent.toLowerCase().indexOf(q) >= 0 ? '' : 'none'
-        }
-      }, 300)
-    })
-  }
-
   window.initYoutube = function () {
-    loadVideos()
+    renderChips('all')
     setupSearch()
+    loadByCategory('all')
     var ov = $('ytPlayerOverlay')
     if (ov) ov.addEventListener('click', function (e) { if (e.target === ov) closePlayer() })
+    var closeBtn = $('ytClosePlayer')
+    if (closeBtn) closeBtn.addEventListener('click', closePlayer)
   }
 })()

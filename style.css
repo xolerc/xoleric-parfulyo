@@ -3022,7 +3022,47 @@ body {
 .yt-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 0 40px;
+  padding: 0 0 40px;
+  scrollbar-width: thin;
+  display: flex; flex-direction: column;
+}
+
+.yt-chips {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.yt-chips::-webkit-scrollbar { display: none; }
+
+.yt-chip {
+  white-space: nowrap;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.yt-chip:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+}
+.yt-chip.active {
+  background: var(--yt-red);
+  border-color: var(--yt-red);
+  color: #fff;
+}
+
+.yt-feed {
+  flex: 1;
+  overflow-y: auto;
   scrollbar-width: thin;
 }
 
@@ -3035,7 +3075,7 @@ body {
   font-size: 13px;
 }
 
-.yt-error {
+.yt-error, .yt-empty {
   text-align: center;
   padding: 60px 20px;
   display: flex;
@@ -3043,7 +3083,7 @@ body {
   align-items: center;
   gap: 8px;
 }
-.yt-error-icon { font-size: 32px; }
+.yt-error-icon, .yt-empty-icon { font-size: 36px; }
 .yt-error-title {
   font-size: 16px;
   font-weight: 600;
@@ -3053,6 +3093,10 @@ body {
   font-size: 13px;
   color: var(--text-muted);
   max-width: 400px;
+}
+.yt-empty-text {
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
 .yt-grid {
@@ -3217,13 +3261,15 @@ body {
 /* responsive */
 @media (max-width: 768px) {
   .yt-page { padding: 0 12px; height: calc(100dvh - 90px); }
-  .yt-grid { grid-template-columns: 1fr; gap: 12px; }
+  .yt-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .yt-search { width: 140px; }
   .yt-search:focus { width: 160px; }
   .yt-brand-text { font-size: 15px; }
   .yt-player-wrap { width: 100vw; max-height: 100vh; border-radius: 0; }
   .yt-player-topbar { padding: 10px 12px; }
   .yt-card-title { font-size: 13px; }
+  .yt-chips { padding: 10px 0; gap: 6px; }
+  .yt-chip { padding: 5px 12px; font-size: 12px; }
 }
 
 @media (max-width: 480px) {
@@ -3231,5 +3277,6 @@ body {
   .yt-search-wrap { width: 100%; }
   .yt-search { width: 100%; }
   .yt-search:focus { width: 100%; }
-  .yt-grid { gap: 10px; }
+  .yt-grid { grid-template-columns: 1fr; gap: 10px; }
+  .yt-chips { gap: 4px; }
 }
