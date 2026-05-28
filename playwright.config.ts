@@ -10,7 +10,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npx vite preview --port 4173',
+    command: 'python3 -m http.server 4173',
     port: 4173,
     timeout: 15000,
     reuseExistingServer: true,

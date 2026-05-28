@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://xolerc.github.io/xoleric-parfulyo/sitemap.xml

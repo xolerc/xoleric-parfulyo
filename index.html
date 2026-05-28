@@ -401,16 +401,23 @@
 
 <div id="chatToast"></div>
 
-<script type="module" src="/src/main.ts" onerror="document.getElementById('loadingOverlay')?.classList.add('fade-out')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="js/db.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/music.js"></script>
+<script src="js/playme.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/repos.js"></script>
+<script src="js/main.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').catch(function(){});
   });
 }
 </script>
 <script>
-// Safety net: remove loading overlay after 10s no matter what
 setTimeout(function(){
   var o = document.getElementById('loadingOverlay');
   if (o && !o.classList.contains('fade-out')) {

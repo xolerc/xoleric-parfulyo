@@ -1,0 +1,22 @@
+{
+  "name": "XOLERIC — Namanganlik dasturchi",
+  "short_name": "XOLERIC",
+  "description": "XOLERIC shaxsiy portfolio va chat ilovasi. AI, Frontend, Backend dasturchi.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#05080f",
+  "theme_color": "#0a0e17",
+  "orientation": "portrait",
+  "categories": ["portfolio", "social", "productivity"],
+  "lang": "uz",
+  "dir": "ltr",
+  "icons": [
+    { "src": "icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "scope": "/",
+  "edge_side_panel": {}
+}

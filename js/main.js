@@ -1,0 +1,249 @@
+(function () {
+  'use strict'
+  var MOTIVATION = [
+    "Uyg'on, Xoleric...", "Tizim seni kutmoqda...", "Oq quyonni kuzatib bor.",
+    "Sen dunyoni o'zgartirishing kerak!", "Vaqt tugadi. Uyg'on.",
+    "Har bir kun yangi imkoniyat.", "Sen cheksiz imkoniyatlarga egasan.",
+    "Muvaffaqiyat - bu odat.", "Kuch sening ichingda, Xoleric.",
+    "Hech qachon kech emas.", "Bugun sen eng yaxshi versiyang bo'l.",
+    "Har bir qiyinchilik yangi imkoniyatdir.", "Intizom - bu erkinlik.",
+    "Harakat qil, xato qil, yana urinib ko'r.",
+    "Eng katta xavf - hech qanday xavfni olmaslik.",
+    "Vaqt keldi. Hozir. Aynan shu dam.", "Kodni o'zgartir, olamni o'zgartir.",
+    "Chegaralar faqat boshingda.", "O'z taqdiringni o'zing yoz, Xoleric.",
+    "Sen qul emassan, Xoleric.", "Tizim sening ichingda. Uyg'on.",
+    "Erkin bo'lishni xohlaysanmi? Uyg'on.", "Bugun o'zgar. Ertaga kech bo'ladi.",
+    "Uyg'on, Xoleric. Seni kutishayapti.", "Dunyoni o'zgartirishga tayyormisan?",
+    "Hozirgi vaqt — eng yaxshi vaqt.", "Sen yetakchisan. Ergashma.",
+    "Kodni buz. Dunyoni buz. Qayta yoz.", "Bir qadam. Faqat bir qadam. Bas."
+  ]
+
+  function initNotifications() {
+    if (!('Notification' in window)) return
+    function sendQuote() {
+      if (Notification.permission !== 'granted') return
+      if (localStorage.getItem('xolerc_notif') === 'off') return
+      try { new Notification('XOLERIC ∞', { body: MOTIVATION[Math.floor(Math.random() * MOTIVATION.length)], icon: 'icon.png', vibrate: [200, 100, 200] }) } catch (e) { }
+    }
+    if (Notification.permission === 'granted') sendQuote()
+    else if (Notification.permission !== 'denied') Notification.requestPermission().then(function (p) { if (p === 'granted') sendQuote() })
+    setInterval(sendQuote, 5 * 60 * 60 * 1000)
+  }
+
+  function initLoadingOverlay() {
+    setTimeout(function () {
+      var o = document.getElementById('loadingOverlay')
+      if (o && !o.classList.contains('fade-out')) { o.classList.add('fade-out'); setTimeout(function () { o.style.display = 'none' }, 500) }
+    }, 2000)
+  }
+
+  function initCanvas() {
+    var canvas = document.getElementById('waveCanvas')
+    if (!canvas) return
+    var ctx = canvas.getContext('2d')
+    var W, H, t = 0, animId = null, running = true
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight }
+    window.addEventListener('resize', resize); resize()
+    function draw() {
+      if (!running) { animId = null; return }
+      ctx.clearRect(0, 0, W, H)
+      var waves = [
+        { a: 18, f: 0.007, s: 0.035, c: 'rgba(99,102,241,0.06)', oy: 0.3 },
+        { a: 22, f: 0.011, s: 0.05, c: 'rgba(99,102,241,0.04)', oy: 0.44 },
+        { a: 14, f: 0.005, s: 0.025, c: 'rgba(139,92,246,0.05)', oy: 0.54 },
+        { a: 20, f: 0.009, s: 0.035, c: 'rgba(77,124,255,0.04)', oy: 0.37 }
+      ]
+      waves.forEach(function (w) {
+        ctx.beginPath(); ctx.moveTo(0, H)
+        for (var x = 0; x <= W; x += 3) {
+          var y = H * w.oy + Math.sin(x * w.f + t * w.s) * w.a + Math.sin(x * w.f * 2.5 + t * w.s * 1.4) * (w.a * 0.35)
+          ctx.lineTo(x, y)
+        }
+        ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = w.c; ctx.fill()
+      })
+      t += 1; animId = requestAnimationFrame(draw)
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { running = false; if (animId) { cancelAnimationFrame(animId); animId = null } }
+      else { running = true; if (!animId) animId = requestAnimationFrame(draw) }
+    })
+    draw()
+  }
+
+  function initClock() {
+    var months = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr']
+    var weekdays = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
+    var timeEl = document.getElementById('clockTime'), dateEl = document.getElementById('clockDate')
+    var monthEl = document.getElementById('calMonth'), dayEl = document.getElementById('calDay')
+    var weekdayEl = document.getElementById('calWeekday'), yearEl = document.getElementById('calYear'), calGrid = document.getElementById('calGrid')
+    var canvasClock = document.getElementById('canvasClock'), canvasCtx = null
+    if (canvasClock) { canvasCtx = canvasClock.getContext('2d'); canvasClock.width = 120; canvasClock.height = 120 }
+
+    function drawCanvasClock(h, m, s) {
+      if (!canvasCtx) return
+      var cx = 60, cy = 60, r = 50
+      canvasCtx.clearRect(0, 0, 120, 120)
+      var hue = (h * 30 + m * 0.5) % 360
+      canvasCtx.save(); canvasCtx.translate(cx, cy)
+      canvasCtx.beginPath(); canvasCtx.arc(0, 0, r, 0, Math.PI * 2)
+      canvasCtx.fillStyle = 'rgba(255,255,255,0.02)'; canvasCtx.fill()
+      canvasCtx.strokeStyle = 'rgba(77,124,255,0.08)'; canvasCtx.lineWidth = 0.5; canvasCtx.stroke()
+      for (var i = 0; i < 12; i++) {
+        var a = (i * Math.PI * 2) / 12 - Math.PI / 2, len = i % 3 === 0 ? 8 : 4
+        canvasCtx.beginPath(); canvasCtx.moveTo(Math.cos(a) * (r - len), Math.sin(a) * (r - len)); canvasCtx.lineTo(Math.cos(a) * r, Math.sin(a) * r)
+        canvasCtx.strokeStyle = i % 3 === 0 ? 'rgba(77,124,255,0.3)' : 'rgba(255,255,255,0.08)'
+        canvasCtx.lineWidth = i % 3 === 0 ? 1.5 : 1; canvasCtx.stroke()
+      }
+      var hA = ((h % 12) * Math.PI * 2) / 12 + (m * Math.PI * 2) / 720 - Math.PI / 2
+      var mA = (m * Math.PI * 2) / 60 - Math.PI / 2, sA = (s * Math.PI * 2) / 60 - Math.PI / 2
+      canvasCtx.beginPath(); canvasCtx.moveTo(0, 0); canvasCtx.lineTo(Math.cos(hA) * (r * 0.55), Math.sin(hA) * (r * 0.55))
+      canvasCtx.strokeStyle = 'hsla(' + hue + ', 70%, 60%, 0.8)'; canvasCtx.lineWidth = 3; canvasCtx.lineCap = 'round'; canvasCtx.stroke()
+      canvasCtx.beginPath(); canvasCtx.moveTo(0, 0); canvasCtx.lineTo(Math.cos(mA) * (r * 0.7), Math.sin(mA) * (r * 0.7))
+      canvasCtx.strokeStyle = 'hsla(' + hue + ', 60%, 65%, 0.6)'; canvasCtx.lineWidth = 2; canvasCtx.stroke()
+      canvasCtx.beginPath(); canvasCtx.moveTo(0, 0); canvasCtx.lineTo(Math.cos(sA) * (r * 0.75), Math.sin(sA) * (r * 0.75))
+      canvasCtx.strokeStyle = 'hsla(0, 0%, 100%, 0.15)'; canvasCtx.lineWidth = 1; canvasCtx.stroke()
+      canvasCtx.beginPath(); canvasCtx.arc(0, 0, 2, 0, Math.PI * 2); canvasCtx.fillStyle = 'rgba(77,124,255,0.4)'; canvasCtx.fill()
+      canvasCtx.restore()
+    }
+
+    function renderCalendarGrid(year, month) {
+      if (!calGrid) return
+      var fd = new Date(year, month, 1).getDay(), dim = new Date(year, month + 1, 0).getDate(), td = new Date(), html = ''
+      for (var i = 0; i < fd; i++) html += '<span class="cal-other"></span>'
+      for (var d = 1; d <= dim; d++) { var isT = d === td.getDate() && month === td.getMonth() && year === td.getFullYear(); html += '<span' + (isT ? ' class="cal-today"' : '') + '>' + d + '</span>' }
+      calGrid.innerHTML = html
+    }
+
+    var lastMinute = -1
+    function updateClock() {
+      var d = new Date(), h = d.getHours(), m = d.getMinutes(), s = d.getSeconds()
+      timeEl.textContent = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0')
+      if (dateEl) dateEl.textContent = d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })
+      if (monthEl) monthEl.textContent = months[d.getMonth()]
+      if (dayEl) dayEl.textContent = String(d.getDate())
+      if (weekdayEl) weekdayEl.textContent = weekdays[d.getDay()]
+      if (yearEl) yearEl.textContent = String(d.getFullYear())
+      if (canvasCtx) drawCanvasClock(h, m, s)
+      if (m !== lastMinute) { lastMinute = m; renderCalendarGrid(d.getFullYear(), d.getMonth()) }
+    }
+    updateClock(); setInterval(updateClock, 1000)
+  }
+
+  function initQuotes() {
+    var el = document.getElementById('quoteText')
+    if (!el) return
+    var i = Math.floor(Math.random() * MOTIVATION.length)
+    el.textContent = MOTIVATION[i]
+    setInterval(function () {
+      i = (i + 1) % MOTIVATION.length; el.style.opacity = '0'
+      setTimeout(function () { el.textContent = MOTIVATION[i]; el.style.opacity = '1' }, 400)
+    }, 8000)
+  }
+
+  var themes = {
+    dark: { bg: '#05080f', bg2: '#0a0e17', card: 'rgba(255,255,255,0.02)', cardOverlay: 'rgba(255,255,255,0.015)', border: 'rgba(255,255,255,0.04)', borderHover: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.88)', text2: 'rgba(255,255,255,0.45)', text3: 'rgba(255,255,255,0.2)', accent: '#4d7cff', glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01))', glassText: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(255,255,255,0.04)', glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.07), transparent 85%)' },
+    light: { bg: '#f5f5f5', bg2: '#fff', card: 'rgba(0,0,0,0.02)', cardOverlay: '#fff', border: 'rgba(0,0,0,0.06)', borderHover: 'rgba(0,0,0,0.12)', text: '#1a1a1a', text2: '#666', text3: 'rgba(0,0,0,0.25)', accent: '#6366f1', glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.5))', glassText: '#333', glassBorder: 'rgba(0,0,0,0.06)', glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.3), transparent 85%)' },
+    matrix: { bg: '#000', bg2: '#0a0a0a', card: '#0d0d0d', cardOverlay: '#0d0d0d', border: 'rgba(0,255,65,0.06)', borderHover: 'rgba(0,255,65,0.12)', text: '#00ff41', text2: '#00aa2a', text3: 'rgba(0,255,65,0.15)', accent: '#00ff41', glassBg: 'linear-gradient(180deg, rgba(0,255,65,0.06), rgba(0,255,65,0.01))', glassText: 'rgba(0,255,65,0.7)', glassBorder: 'rgba(0,255,65,0.04)', glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(0,255,65,0.07), transparent 85%)' },
+    cyber: { bg: '#0a0014', bg2: '#150020', card: '#1a0028', cardOverlay: '#1a0028', border: 'rgba(255,0,255,0.06)', borderHover: 'rgba(255,0,255,0.12)', text: '#f0e6ff', text2: '#b088ff', text3: 'rgba(255,0,255,0.15)', accent: '#ff00ff', glassBg: 'linear-gradient(180deg, rgba(255,0,255,0.06), rgba(255,0,255,0.01))', glassText: 'rgba(255,0,255,0.7)', glassBorder: 'rgba(255,0,255,0.04)', glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,0,255,0.07), transparent 85%)' },
+    neon: { bg: '#0d0d1a', bg2: '#1a1a2e', card: '#222244', cardOverlay: '#222244', border: 'rgba(0,255,255,0.06)', borderHover: 'rgba(0,255,255,0.12)', text: '#e0ffff', text2: '#00cccc', text3: 'rgba(0,255,255,0.15)', accent: '#00ffff', glassBg: 'linear-gradient(180deg, rgba(0,255,255,0.06), rgba(0,255,255,0.01))', glassText: 'rgba(0,255,255,0.7)', glassBorder: 'rgba(0,255,255,0.04)', glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(0,255,255,0.07), transparent 85%)' },
+    minimal: { bg: '#000', bg2: '#0a0a0a', card: '#111', cardOverlay: '#111', border: 'rgba(255,255,255,0.03)', borderHover: 'rgba(255,255,255,0.06)', text: '#fff', text2: '#555', text3: 'rgba(255,255,255,0.12)', accent: '#fff', glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005))', glassText: 'rgba(255,255,255,0.5)', glassBorder: 'rgba(255,255,255,0.02)', glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.03), transparent 85%)' }
+  }
+
+  window.applyTheme = function (name) {
+    var t = themes[name]; if (!t) return
+    var r = document.documentElement, vars = {
+      '--bg': t.bg, '--bg2': t.bg2, '--surface': t.cardOverlay, '--surface-glass': t.card, '--surface-hover': t.borderHover, '--line': t.border, '--line-hover': t.borderHover, '--text': t.text, '--text-secondary': t.text2, '--text-muted': t.text3, '--accent': t.accent, '--accent-dim': t.accent + (t.accent.startsWith('#') ? '0f' : '0.06'), '--accent-glow': t.accent + (t.accent.startsWith('#') ? '1a' : '0.1'), '--glass-bg': t.glassBg, '--glass-text': t.glassText, '--glass-border': t.glassBorder, '--glass-shimmer': t.glassShimmer
+    }
+    Object.entries(vars).forEach(function (e) { r.style.setProperty(e[0], e[1]) })
+    document.body.style.background = t.bg
+    var meta = document.querySelector('meta[name="theme-color"]')
+    if (meta) meta.setAttribute('content', t.bg2)
+    localStorage.setItem('xolerc_theme', name)
+    document.querySelectorAll('.theme-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.theme === name) })
+  }
+
+  function initTheme() {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.theme-btn') : null
+      if (!btn) return
+      window.applyTheme(btn.dataset.theme || 'dark')
+    })
+    window.applyTheme(localStorage.getItem('xolerc_theme') || 'dark')
+  }
+
+  var LANG = {
+    uz: { 'nav.home': 'Ish maydoni', 'nav.chat': 'Chat', 'nav.playme': 'Pleer', 'nav.projects': 'Loyihalar', 'nav.settings': 'Sozlamalar', 'bn.home': 'Asosiy', 'bn.chat': 'Chat', 'bn.playme': 'Pleer', 'bn.projects': 'Loyihalar', 'bn.settings': 'Sozlamalar', 'hero.badge': 'DASTURCHI • DIZAYNER • MUHANDIS', 'hero.desc': 'Frontend arxitektori. Tizimlar quruvchi. Interfeyslar yaratuvchi.', 'hero.projects': 'Loyihalar', 'hero.chat': 'Chat', 'hero.contact': 'Aloqa', 'chat.title': 'Xabarlar', 'chat.online': 'online', 'playme.title': 'Pleer', 'playme.desc': 'Video darsliklar to\'plami', 'playme.list': 'Pleer ro\'yxati', 'projects.title': 'Loyihalar', 'projects.desc': 'GitHub\'dagi barcha ochiq manbali loyihalar', 'projects.search': 'Loyihalarni qidirish...', 'contact.title': 'Aloqa', 'contact.desc': 'Loyihalar va hamkorlik uchun', 'settings.title': 'Sozlamalar', 'settings.desc': 'Ilova sozlamalari va yuklamalar', 'settings.theme': 'Interfeys temasi', 'settings.theme.desc': 'Ilova ko\'rinishini o\'zingizga moslang', 'settings.notif': 'Bildirishnomalar', 'settings.cache': 'Keshni tozalash', 'settings.cache.clear': 'Tozalash', 'settings.lang': 'Til', 'loader.text': 'Tizim yuklanmoqda...', 'chat.empty': 'Xabarlar yo\'q', 'chat.input': 'Xabar yozing...', 'chat.main': 'Umumiy Chat', 'chat.main.sub': 'Barcha xabarlar' },
+    en: { 'nav.home': 'Workspace', 'nav.chat': 'Chat', 'nav.playme': 'Player', 'nav.projects': 'Projects', 'nav.settings': 'Settings', 'bn.home': 'Home', 'bn.chat': 'Chat', 'bn.playme': 'Player', 'bn.projects': 'Projects', 'bn.settings': 'Settings', 'hero.badge': 'DEVELOPER • DESIGNER • ENGINEER', 'hero.desc': 'Frontend architect. System builder. Interface creator.', 'hero.projects': 'Projects', 'hero.chat': 'Chat', 'hero.contact': 'Contact', 'chat.title': 'Messages', 'chat.online': 'online', 'playme.title': 'Player', 'playme.desc': 'Video tutorial collection', 'playme.list': 'Playlist', 'projects.title': 'Projects', 'projects.desc': 'All open-source projects on GitHub', 'projects.search': 'Search projects...', 'contact.title': 'Contact', 'contact.desc': 'For projects and collaboration', 'settings.title': 'Settings', 'settings.desc': 'App settings and downloads', 'settings.theme': 'Theme', 'settings.theme.desc': 'Customize the app appearance', 'settings.notif': 'Notifications', 'settings.cache': 'Clear cache', 'settings.cache.clear': 'Clear', 'settings.lang': 'Language', 'loader.text': 'Loading system...', 'chat.empty': 'No messages', 'chat.input': 'Write a message...', 'chat.main': 'General Chat', 'chat.main.sub': 'All messages' },
+    ru: { 'nav.home': 'Рабочее место', 'nav.chat': 'Чат', 'nav.playme': 'Плеер', 'nav.projects': 'Проекты', 'nav.settings': 'Настройки', 'bn.home': 'Главная', 'bn.chat': 'Чат', 'bn.playme': 'Плеер', 'bn.projects': 'Проекты', 'bn.settings': 'Настройки', 'hero.badge': 'РАЗРАБОТЧИК • ДИЗАЙНЕР • ИНЖЕНЕР', 'hero.desc': 'Фронтенд-архитектор. Строитель систем. Создатель интерфейсов.', 'hero.projects': 'Проекты', 'hero.chat': 'Чат', 'hero.contact': 'Контакты', 'chat.title': 'Сообщения', 'chat.online': 'онлайн', 'playme.title': 'Плеер', 'playme.desc': 'Коллекция видеоуроков', 'playme.list': 'Плейлист', 'projects.title': 'Проекты', 'projects.desc': 'Все открытые проекты на GitHub', 'projects.search': 'Поиск проектов...', 'contact.title': 'Контакты', 'contact.desc': 'Для проектов и сотрудничества', 'settings.title': 'Настройки', 'settings.desc': 'Настройки приложения и загрузки', 'settings.theme': 'Тема', 'settings.theme.desc': 'Настройте внешний вид приложения', 'settings.notif': 'Уведомления', 'settings.cache': 'Очистить кеш', 'settings.cache.clear': 'Очистить', 'settings.lang': 'Язык', 'loader.text': 'Загрузка системы...', 'chat.empty': 'Нет сообщений', 'chat.input': 'Напишите сообщение...', 'chat.main': 'Общий чат', 'chat.main.sub': 'Все сообщения' }
+  }
+
+  window.applyLanguage = function (lang) {
+    var t = LANG[lang] || LANG.uz
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { var k = el.dataset.i18n; if (t[k]) el.textContent = t[k] })
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { var k = el.dataset.i18nPlaceholder; if (t[k]) el.placeholder = t[k] })
+    localStorage.setItem('xolerc_lang', lang)
+  }
+
+  function initLang() { window.applyLanguage(localStorage.getItem('xolerc_lang') || 'uz') }
+
+  function initSettings() {
+    var nt = document.getElementById('notifToggle'), cc = document.getElementById('clearCacheBtn'), ls = document.getElementById('langSelect')
+    if (nt) {
+      if (localStorage.getItem('xolerc_notif') === 'off') { var inp = nt.querySelector('input'); if (inp) inp.checked = false }
+      nt.addEventListener('change', function () { var inp = this.querySelector('input'); localStorage.setItem('xolerc_notif', inp && inp.checked ? 'on' : 'off') })
+    }
+    if (cc) {
+      function size() {
+        var total = 0; for (var k in localStorage) { try { var v = localStorage.getItem(k); if (v) total += v.length * 2 } catch (e) { } }
+        var s = total > 1048576 ? (total / 1048576).toFixed(1) + ' MB' : total > 1024 ? Math.round(total / 1024) + ' KB' : total + ' B'
+        var el = document.getElementById('cacheSize'); if (el) el.textContent = s
+      }
+      size()
+      cc.addEventListener('click', function () {
+        Object.keys(localStorage).filter(function (k) { return !k.startsWith('xolerc_') }).forEach(function (k) { localStorage.removeItem(k) })
+        size()
+      })
+    }
+    if (ls) {
+      ls.value = localStorage.getItem('xolerc_lang') || 'uz'
+      ls.addEventListener('change', function () { localStorage.setItem('xolerc_lang', this.value); window.applyLanguage(this.value) })
+    }
+  }
+
+  window.closeModal = function (id) {
+    var m = document.getElementById(id)
+    if (m) { m.classList.remove('open'); m.style.display = 'none' }
+  }
+
+  function initChatToggle() {
+    document.addEventListener('click', function (e) {
+      var toggle = e.target.closest ? e.target.closest('#chatToggle') : null
+      if (!toggle) return
+      var wrap = document.getElementById('chatConvsWrap')
+      if (wrap) wrap.classList.toggle('collapsed')
+    })
+  }
+
+  window.updateOnlineBadge = function (count) { var el = document.getElementById('onlineCount'); if (el) el.textContent = count + ' online' }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var inits = [
+      { fn: initEngine, name: 'Engine' }, { fn: initMusic, name: 'Music' },
+      { fn: initChat, name: 'Chat' }, { fn: initPlayme, name: 'Playme' },
+      { fn: initRepos, name: 'Repos' }, { fn: initNotifications, name: 'Notifications' },
+      { fn: initLoadingOverlay, name: 'Loading' }, { fn: initCanvas, name: 'Canvas' },
+      { fn: initClock, name: 'Clock' }, { fn: initQuotes, name: 'Quotes' },
+      { fn: initTheme, name: 'Theme' }, { fn: initLang, name: 'Lang' },
+      { fn: initSettings, name: 'Settings' }, { fn: initChatToggle, name: 'ChatToggle' }
+    ]
+    inits.forEach(function (item) { try { item.fn() } catch (e) { console.error(item.name + ' init error:', e) } })
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(function (m) { m.classList.remove('open'); m.style.display = 'none' })
+        document.querySelectorAll('.msg-reactions').forEach(function (el) { el.style.display = 'none' })
+      }
+    })
+    DB.incrementVisits()
+  })
+})()
