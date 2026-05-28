@@ -3,7 +3,6 @@
 node_modules/
 .env
 .env.local
-dist/
 test-results/
 *.mp4
 *.webm

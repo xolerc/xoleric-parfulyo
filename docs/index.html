@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XOLERIC — Namanganlik dasturchi | AI · Frontend · Backend</title>
+  <meta name="description" content="Xoleric — O'zbekiston, Namangan shahridan. Programmer, AI mutaxassisi, Frontend & Backend dasturchi va dizayner.">
+  <meta name="keywords" content="Xoleric, Namangan, Uzbek dasturchi, AI developer, frontend, backend, programmer, O'zbekiston dasturchi, web developer, portfolio">
+  <meta name="author" content="Xoleric">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0a0e17">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="XOLERIC">
+  <meta property="og:title" content="XOLERIC — Namanganlik dasturchi | AI · Frontend · Backend">
+  <meta property="og:description" content="O'zbekiston, Namangan shahridan. Programmer, AI mutaxassisi, Frontend & Backend dasturchi va dizayner. Portfolio va loyihalar.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://xolerc.github.io/xoleric-parfulyo/">
+  <meta property="og:image" content="https://xolerc.github.io/xoleric-parfulyo/icon.png">
+  <meta property="og:image:width" content="640">
+  <meta property="og:image:height" content="640">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="XOLERIC — Namanganlik dasturchi">
+  <meta name="twitter:description" content="AI · Frontend · Backend · Programmer · Dizayner">
+  <meta name="twitter:image" content="https://xolerc.github.io/xoleric-parfulyo/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://xolerc.github.io" />
+  <link rel="dns-prefetch" href="https://xoleric-9ad1b-default-rtdb.firebaseio.com" />
+  <link rel="dns-prefetch" href="https://api.github.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="pwa-manifest.json" />
+  <link rel="canonical" href="https://xolerc.github.io/xoleric-parfulyo/" />
+  <link rel="apple-touch-icon" href="./assets/icon-D908SwN8.png" />
+  <script>
+    window.__XOLERIC_CONFIG__ = {
+      FIREBASE_URL: 'https://xoleric-9ad1b-default-rtdb.firebaseio.com'
+    };
+  </script>
+  <script type="module" crossorigin src="./assets/index-MRNNF7E2.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-Fa0LdsEM.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-Bvw7eVvq.css">
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div class="loader-ring"></div>
+  <div class="loader-text">XOLERIC</div>
+  <div class="loader-sub" data-i18n="loader.text">Tizim yuklanmoqda...</div>
+</div>
+
+<div class="app">
+
+  <!-- ===== DESKTOP SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">XOLERIC <span>∞</span></div>
+    <nav class="nav" aria-label="Asosiy navigatsiya">
+      <button class="nav-btn active" data-tab="home" role="tab" aria-selected="true"><span class="nav-glow"></span><span data-i18n="nav.home">Ish maydoni</span></button>
+      <button class="nav-btn" data-tab="chat" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.chat">Chat</span></button>
+      <button class="nav-btn" data-tab="playme" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.playme">Pleer</span></button>
+      <button class="nav-btn" data-tab="projects" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.projects">Loyihalar</span></button>
+      <button class="nav-btn" data-tab="settings" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.settings">Sozlamalar</span></button>
+    </nav>
+  </aside>
+
+  <!-- ===== CONTENT ===== -->
+  <main class="content">
+    <header class="topbar">
+      <span>XOLERIC <span>∞</span></span>
+      <button class="topbar-music" id="musicToggle" title="Musiqa">
+        <span class="topbar-music-icon"></span>
+      </button>
+    </header>
+
+    <section class="workspace">
+      <canvas id="waveCanvas"></canvas>
+      <div class="tabs-track">
+
+        <!-- ========== HOME ========== -->
+        <div class="tab-content" id="tab-home">
+          <div class="home-widgets">
+            <div class="widget-card widget-clock" id="widgetClock">
+              <canvas id="canvasClock" class="canvas-clock" width="120" height="120"></canvas>
+              <div class="widget-clock-time" id="clockTime">00:00</div>
+              <div class="widget-clock-date" id="clockDate">...</div>
+            </div>
+            <div class="widget-card widget-calendar glass-calendar" id="widgetCalendar">
+              <div class="widget-calendar-head">
+                <div class="widget-calendar-month" id="calMonth">Yanvar</div>
+                <div class="widget-calendar-day" id="calDay">1</div>
+              </div>
+              <div class="widget-calendar-weekday" id="calWeekday">Dushanba</div>
+              <div class="widget-calendar-year" id="calYear">2026</div>
+              <div class="cal-grid" id="calGrid"></div>
+              <div class="cal-blur-bg"></div>
+            </div>
+            <div class="widget-card widget-quote">
+              <div class="widget-quote-icon"></div>
+              <div class="quote-text" id="quoteText">Uyg'on, Xoleric...</div>
+            </div>
+          </div>
+          <div class="hero-glass">
+            <div class="hero-glow-bg"></div>
+            <h1 class="hero-title"><span class="hero-grad">XOLERIC</span></h1>
+            <div class="hero-badge" data-i18n="hero.badge">DASTURCHI &bull; DIZAYNER &bull; MUHANDIS</div>
+            <p class="hero-desc" data-i18n="hero.desc">Frontend arxitektori. Tizimlar quruvchi. Interfeyslar yaratuvchi.</p>
+            <div class="hero-actions">
+              <button class="glass-btn" onclick="switchTab('projects')" data-i18n="hero.projects">Loyihalar</button>
+              <button class="glass-btn glass-outline" onclick="switchTab('chat')" data-i18n="hero.chat">Chat</button>
+              <button class="glass-btn glass-outline" onclick="switchTab('contact')" data-i18n="hero.contact">Aloqa</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== CHAT (Telegram/WhatsApp style) ========== -->
+        <div class="tab-content" id="tab-chat">
+          <div class="chat-block" id="chatContainer">
+            <div class="chat-depth"></div>
+            <div class="chat-loader" id="chatLoader">
+              <div class="chat-loader-ring"></div>
+              <div class="chat-loader-text">Neural Chat</div>
+              <div class="chat-loader-sub">Serverga ulanmoqda...</div>
+            </div>
+
+            <!-- ===== CHAT LIST VIEW (Conversations) ===== -->
+            <div class="chat-list-view" id="chatListView">
+              <div class="chat-list-appbar">
+                <div class="chat-list-appbar-left">
+                  <span class="chat-list-title">Xabarlar</span>
+                </div>
+                <div class="chat-list-appbar-right">
+                </div>
+              </div>
+              <div class="chat-list-body">
+                <div class="chat-current-user" id="sidebarUser">
+                  <div class="chat-user-avatar" id="sidebarAvatar">?</div>
+                  <div class="chat-user-info">
+                    <span class="chat-user-name" id="sidebarName">Yuklanmoqda...</span>
+                    <span class="chat-user-status" id="sidebarStatus">offline</span>
+                  </div>
+                  <button class="chat-edit-btn" id="editProfileBtn"></button>
+                </div>
+                <div class="chat-convs" id="sidebarChats">
+                  <div class="conv-empty" data-i18n="chat.empty">Yuklanmoqda...</div>
+                </div>
+              </div>
+              <div class="chat-list-footer">
+                <span class="chat-online" id="onlineCount">0 online</span>
+              </div>
+            </div>
+
+            <!-- ===== CHAT ROOM VIEW (Messages) ===== -->
+            <div class="chat-room-view" id="chatRoomView" style="display:none">
+              <div class="chat-room-appbar">
+                <button class="chat-back-btn" id="chatBackBtn" title="Orqaga"></button>
+                <div class="chat-room-user">
+                  <div class="chat-room-avatar" id="chatRoomAvatar">?</div>
+                  <div class="chat-room-info">
+                    <span class="chat-room-name" id="chatRoomName">Yuklanmoqda...</span>
+                    <span class="chat-room-status" id="chatRoomStatus">online</span>
+                  </div>
+                </div>
+                <div class="chat-room-actions">
+                  <button class="chat-action-btn chat-room-info-btn" id="chatRoomInfoBtn" title="Ma'lumot"></button>
+                </div>
+              </div>
+              <div class="chat-msgs" id="chatMessages">
+                <div class="chat-empty">Konversiyani tanlang</div>
+              </div>
+              <div id="chatJoinArea" class="chat-join-area" style="display:none"></div>
+              <div class="chat-input-bar" id="chatInputArea" style="display:none">
+                <button class="chat-media-btn" id="chatMediaBtn" title="Rasm yuborish"></button>
+                <button class="chat-voice-btn" id="chatVoiceBtn" title="Ovozli xabar"></button>
+                <div class="chat-input-wrap">
+                  <textarea class="chat-input" id="chatInput" placeholder="Xabar yozing..." rows="1"></textarea>
+                </div>
+                <button class="chat-send-btn" id="chatSendBtn"></button>
+              </div>
+              <input type="file" id="chatMediaInput" accept="image/*" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== PLAYME ========== -->
+        <div class="tab-content" id="tab-playme">
+          <div class="page-header">
+            <span class="section-num">01</span>
+            <h2 class="page-title" data-i18n="playme.title">Pleer</h2>
+            <p class="page-desc" data-i18n="playme.desc">Video darsliklar to'plami</p>
+          </div>
+          <div class="playme-layout">
+            <div class="playme-player-col">
+              <div class="playme-wrap" id="playmeWrap">
+                <div class="playme-neon-glow"></div>
+                <video id="playmeVideo" class="playme-video" playsinline preload="metadata"></video>
+                <div class="playme-live-badge" id="playmeLiveBadge">Jonli efir</div>
+                <div class="playme-loader" id="playmeLoader">
+                  <div class="mini-loader"></div>
+                </div>
+                <div class="playme-controls" id="playmeControls">
+                  <div class="playme-controls-bottom">
+                    <div class="playme-progress" id="playmeProgress">
+                      <div class="playme-progress-fill" id="playmeProgressFill"></div>
+                      <div class="playme-progress-thumb" id="playmeProgressThumb"></div>
+                    </div>
+                    <div class="playme-controls-row">
+                      <div class="playme-controls-left">
+                        <button class="playme-btn playme-btn-play" id="playmePlayBtn"></button>
+                        <button class="playme-btn" id="playmePrevBtn"></button>
+                        <button class="playme-btn" id="playmeNextBtn"></button>
+                        <span class="playme-time" id="playmeCurrent">0:00</span>
+                        <span class="playme-time-sep">/</span>
+                        <span class="playme-time" id="playmeDuration">0:00</span>
+                      </div>
+                      <div class="playme-controls-right">
+                        <div class="playme-volume-wrap">
+                          <button class="playme-btn" id="playmeVolumeIcon"></button>
+                          <input type="range" class="playme-volume" id="playmeVolume" min="0" max="1" step="0.05" value="0.8" />
+                        </div>
+                        <button class="playme-btn" id="playmePipBtn" title="PiP">⧉</button>
+                  <button class="playme-btn" id="playmeFullBtn"></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="playme-info">
+                <h3 class="playme-title" id="playmeVideoTitle">Video 1</h3>
+              </div>
+            </div>
+            <div class="playme-list-col">
+              <div class="playme-list-header" data-i18n="playme.list">Pleer ro'yxati</div>
+              <div class="playme-list" id="playmeList"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== PROJECTS ========== -->
+        <div class="tab-content" id="tab-projects">
+          <div class="page-header">
+            <span class="section-num">02</span>
+            <h2 class="page-title" data-i18n="projects.title">Loyihalar</h2>
+            <p class="page-desc" data-i18n="projects.desc">GitHub'dagi barcha ochiq manbali loyihalar</p>
+          </div>
+          <div class="projects-toolbar">
+            <div class="projects-search-wrap">
+              <input class="projects-search" id="projectsSearch" data-i18n-placeholder="projects.search" placeholder="Loyihalarni qidirish..." />
+            </div>
+            <div class="projects-filters" id="projectsFilters"></div>
+          </div>
+          <div class="projects-loading" id="projectsLoading">
+            <div class="mini-loader"></div>
+            <span>Yuklanmoqda...</span>
+          </div>
+          <div class="projects-grid" id="projectsGrid"></div>
+        </div>
+
+        <!-- ========== CONTACT (embedded in projects) ========== -->
+        <div class="tab-content" id="tab-contact">
+          <div class="page-header">
+            <span class="section-num">03</span>
+            <h2 class="page-title" data-i18n="contact.title">Aloqa</h2>
+            <p class="page-desc" data-i18n="contact.desc">Loyihalar va hamkorlik uchun</p>
+          </div>
+          <div class="contact-grid">
+            <a href="https://github.com/xolerc" target="_blank" class="contact-card">
+              <span class="contact-icon contact-github"></span>
+              <span class="contact-label">GITHUB</span>
+            </a>
+            <a href="https://t.me/wxoleric" target="_blank" class="contact-card">
+              <span class="contact-icon contact-telegram"></span>
+              <span class="contact-label">TELEGRAM</span>
+            </a>
+            <a href="https://youtube.com/@xoleric" target="_blank" class="contact-card">
+              <span class="contact-icon contact-youtube"></span>
+              <span class="contact-label">YOUTUBE</span>
+            </a>
+            <a href="mailto:corexoleric@gmail.com" class="contact-card">
+              <span class="contact-icon contact-email"></span>
+              <span class="contact-label">EMAIL</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- ========== SETTINGS ========== -->
+        <div class="tab-content" id="tab-settings">
+          <div class="page-header">
+            <span class="section-num">04</span>
+            <h2 class="page-title" data-i18n="settings.title">Sozlamalar</h2>
+            <p class="page-desc" data-i18n="settings.desc">Ilova sozlamalari va yuklamalar</p>
+          </div>
+
+          <div class="settings-card settings-apk">
+            <div class="settings-apk-glow"></div>
+            <h3>XOLERIC APK <span class="version-badge">v2.4.0</span></h3>
+            <p>Android qurilmangizga XOLERIC ilovasini yuklab oling. Eng so'nggi versiya bilan barcha imkoniyatlardan foydalaning.</p>
+            <div class="settings-actions">
+              <a href="https://github.com/xolerc/xoleric-parfulyo/raw/main/xoleric.apk" target="_blank" class="glass-btn apk-download-btn">APK yuklash</a>
+              <a href="xoleric.apk" class="glass-btn glass-outline">Eski versiyalar</a>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3 data-i18n="settings.theme">Interfeys temasi</h3>
+            <p data-i18n="settings.theme.desc">Ilova ko'rinishini o'zingizga moslang</p>
+            <div class="theme-grid" id="themeGrid">
+              <button class="theme-btn active" data-theme="dark"><span class="theme-dot" style="background:#4d7cff"></span>Tungi</button>
+              <button class="theme-btn" data-theme="light"><span class="theme-dot" style="background:#6366f1"></span>Kunduzgi</button>
+              <button class="theme-btn" data-theme="matrix"><span class="theme-dot" style="background:#00ff41"></span>Matrix</button>
+              <button class="theme-btn" data-theme="cyber"><span class="theme-dot" style="background:#ff00ff"></span>Cyber</button>
+              <button class="theme-btn" data-theme="neon"><span class="theme-dot" style="background:#00ffff"></span>Neon</button>
+              <button class="theme-btn" data-theme="minimal"><span class="theme-dot" style="background:#fff"></span>Minimal</button>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3>Kengaytirilgan sozlamalar</h3>
+            <div class="settings-item">
+              <span class="settings-item-label" data-i18n="settings.notif">Bildirishnomalar</span>
+              <label class="switch" id="notifToggle">
+                <input type="checkbox" checked /><span class="switch-slider"></span>
+              </label>
+            </div>
+            <div class="settings-item">
+              <span class="settings-item-label" data-i18n="settings.cache">Keshni tozalash</span>
+              <div class="settings-item-right">
+                <span class="settings-cache-size" id="cacheSize">0 MB</span>
+                <button class="settings-cache-btn" id="clearCacheBtn" data-i18n="settings.cache.clear">Tozalash</button>
+              </div>
+            </div>
+            <div class="settings-item">
+              <span class="settings-item-label" data-i18n="settings.lang">Til</span>
+              <select class="settings-select" id="langSelect">
+                <option value="uz">O'zbekcha</option>
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-card settings-dev">
+            <div class="settings-dev-info">
+              <span>Versiya: 2.4.0</span>
+              <span>Litsenziya: MIT</span>
+              <span>&copy; 2026 XOLERIC</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== BOTTOM NAVIGATION BAR ===== -->
+    <nav class="bottom-nav" id="bottomNav" aria-label="Pastki navigatsiya">
+      <button class="bn-btn active" data-tab="home" role="tab" aria-selected="true">
+        <span class="bn-icon bn-icon-home" aria-hidden="true"></span>
+        <span class="bn-label" data-i18n="bn.home">Asosiy</span>
+      </button>
+      <button class="bn-btn" data-tab="chat" role="tab" aria-selected="false">
+        <span class="bn-icon bn-icon-chat" aria-hidden="true"></span>
+        <span class="bn-label" data-i18n="bn.chat">Chat</span>
+      </button>
+      <button class="bn-btn" data-tab="playme" role="tab" aria-selected="false">
+        <span class="bn-icon bn-icon-play" aria-hidden="true"></span>
+        <span class="bn-label" data-i18n="bn.playme">Pleer</span>
+      </button>
+      <button class="bn-btn" data-tab="projects" role="tab" aria-selected="false">
+        <span class="bn-icon bn-icon-folder" aria-hidden="true"></span>
+        <span class="bn-label" data-i18n="bn.projects">Loyihalar</span>
+      </button>
+      <button class="bn-btn" data-tab="settings" role="tab" aria-selected="false">
+        <span class="bn-icon bn-icon-settings" aria-hidden="true"></span>
+        <span class="bn-label" data-i18n="bn.settings">Sozlamalar</span>
+      </button>
+    </nav>
+
+    <audio id="bgMusic" src="./assets/bg-music-Dn9G_w39.mp3" loop></audio>
+  </main>
+</div>
+
+<!-- ===== SETUP / PROFILE MODAL ===== -->
+<div class="modal-overlay" id="setupModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="setupModalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="setupModalTitle">Profilingiz</h3>
+      <button class="modal-close-btn" id="setupModalClose" aria-label="Yopish">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc">Ismingizni kiriting va chatda qatnashing</p>
+      <div class="setup-avatar" id="setupAvatar">?</div>
+      <label class="setup-avatar-label">
+        <input type="file" id="setupAvatarInput" accept="image/*" />
+        Rasm yuklash
+      </label>
+      <input class="modal-input" id="setupName" placeholder="Ismingiz..." maxlength="30" />
+      <input class="modal-input" id="setupBio" placeholder="Bio (ixtiyoriy)" maxlength="80" />
+      <button class="modal-btn" id="setupSave">Davom etish</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="chatToast"></div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+<script>
+// Safety net: remove loading overlay after 10s no matter what
+setTimeout(function(){
+  var o = document.getElementById('loadingOverlay');
+  if (o && !o.classList.contains('fade-out')) {
+    o.classList.add('fade-out');
+    setTimeout(function(){ o.style.display = 'none'; }, 500);
+  }
+}, 10000);
+</script>
+</body>
+</html>

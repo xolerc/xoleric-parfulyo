@@ -4,7 +4,7 @@ export default defineConfig({
   base: './',
   appType: 'mpa',
   build: {
-    outDir: 'dist',
+    outDir: 'docs',
     emptyOutDir: true,
     sourcemap: true,
     target: 'es2020',
