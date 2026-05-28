@@ -4,6 +4,7 @@
   var CACHE_TTL = 30 * 60 * 1000
   var searchCache = {}
   var abortCtrl = null, searchTimer = null
+  var currentCategory = 'all', playingId = null
 
   var CATEGORIES = [
     { id: 'all', label: 'Barcha', query: '' },
@@ -12,13 +13,12 @@
     { id: 'coding', label: 'Dasturlash', query: 'dasturlash 2026' },
     { id: 'gaming', label: "O'yin", query: "o'yin 2026" }
   ]
-  var currentCategory = 'all', currentQuery = ''
 
   function $(id) { return document.getElementById(id) }
   function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
   function escAttr(s) { return (s || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;') }
 
-  function ytApiUrl(path, params) {
+  function ytApi(path, params) {
     var p = ''; for (var k in params) { if (p) p += '&'; p += k + '=' + encodeURIComponent(params[k]) }
     return 'https://www.googleapis.com/youtube/v3/' + path + '?' + p + '&key=' + API_KEY
   }
@@ -26,255 +26,165 @@
   async function ytFetch(path, params) {
     if (abortCtrl) abortCtrl.abort()
     abortCtrl = new AbortController()
-    var resp = await fetch(ytApiUrl(path, params), { signal: abortCtrl.signal })
+    var resp = await fetch(ytApi(path, params), { signal: abortCtrl.signal })
     var data = await resp.json()
     if (data.error) throw new Error(data.error.message || 'YouTube API xatosi')
     if (!resp.ok) throw new Error('HTTP ' + resp.status)
     return data
   }
 
-  function cacheKey(query) { return 'yt_' + query.toLowerCase().replace(/\s+/g, '_') }
+  function cacheKey(q) { return 'yt_' + q.toLowerCase().replace(/\s+/g, '_') }
 
-  function getCached(query) {
-    var key = cacheKey(query), raw = localStorage.getItem(key)
-    if (!raw) return null
-    try {
-      var c = JSON.parse(raw)
-      if (Date.now() - c.ts < CACHE_TTL) return c.data
-    } catch (e) {}
+  function getCached(q) {
+    try { var raw = localStorage.getItem(cacheKey(q)); if (!raw) return null; var c = JSON.parse(raw); if (Date.now() - c.ts < CACHE_TTL) return c.data } catch (e) {}
     return null
   }
+  function setCached(q, data) { localStorage.setItem(cacheKey(q), JSON.stringify({ ts: Date.now(), data: data })) }
 
-  function setCached(query, data) {
-    var key = cacheKey(query)
-    localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: data }))
+  function fmt(n) { n = parseInt(n, 10) || 0; if (n >= 1000000) return (n / 1000000).toFixed(1) + ' mln'; if (n >= 1000) return (n / 1000).toFixed(1) + ' ming'; return n.toString() }
+
+  function ago(d) {
+    var diff = Date.now() - new Date(d).getTime(), days = Math.floor(diff / 86400000)
+    if (days < 1) return 'Bugun'; if (days < 7) return days + ' kun oldin'; if (days < 30) return Math.floor(days / 7) + ' hafta oldin'; if (days < 365) return Math.floor(days / 30) + ' oy oldin'; return Math.floor(days / 365) + ' yil oldin'
   }
 
-  function formatViews(n) {
-    n = parseInt(n, 10) || 0
-    if (n >= 1000000000) return (n / 1000000000).toFixed(1) + ' mlrd'
-    if (n >= 1000000) return (n / 1000000).toFixed(1) + ' mln'
-    if (n >= 1000) return (n / 1000).toFixed(1) + ' ming'
-    return n.toString()
+  function flatVideos(items, mode) {
+    if (mode === 'search') {
+      var ids = [], map = {}
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].id && items[i].id.videoId) { ids.push(items[i].id.videoId); map[items[i].id.videoId] = items[i] }
+      }
+      return { ids: ids, map: map }
+    }
+    return { ids: items.map(function (v) { return v.id }), map: {} }
   }
 
-  function timeAgo(dateStr) {
-    var now = Date.now(), then = new Date(dateStr).getTime(), diff = now - then
-    var days = Math.floor(diff / 86400000)
-    if (days < 1) return 'Bugun'
-    if (days < 7) return days + ' kun oldin'
-    if (days < 30) return Math.floor(days / 7) + ' hafta oldin'
-    if (days < 365) return Math.floor(days / 30) + ' oy oldin'
-    return Math.floor(days / 365) + ' yil oldin'
+  async function loadTrending() {
+    var cached = getCached('__trending__')
+    if (cached) return cached
+    var data = await ytFetch('videos', { part: 'snippet,statistics', chart: 'mostPopular', maxResults: 30 })
+    if (!data.items || !data.items.length) throw new Error('Trending topilmadi')
+    var res = data.items.map(function (v) { return { id: v.id, title: v.snippet.title, thumb: (v.snippet.thumbnails.high || v.snippet.thumbnails.medium || v.snippet.thumbnails.default).url, published: v.snippet.publishedAt, views: v.statistics && v.statistics.viewCount || '0', channel: v.snippet.channelTitle, channelId: v.snippet.channelId } })
+    setCached('__trending__', res)
+    return res
   }
 
-  async function searchVideos(query) {
+  async function searchVids(query) {
     var cached = getCached(query)
     if (cached) return cached
     var data = await ytFetch('search', { part: 'snippet', q: query, type: 'video', maxResults: 30, safeSearch: 'none' })
     if (!data.items || !data.items.length) throw new Error('Video topilmadi')
-    var ids = [], items = []
-    for (var i = 0; i < data.items.length; i++) {
-      var v = data.items[i]
-      if (v.id && v.id.videoId) { ids.push(v.id.videoId); items.push(v) }
-    }
-    if (!ids.length) throw new Error('Video topilmadi')
-    var statsData = await ytFetch('videos', { part: 'statistics', id: ids.join(',') })
-    var statsMap = {}
-    if (statsData.items) {
-      for (var j = 0; j < statsData.items.length; j++) {
-        var s = statsData.items[j]
-        statsMap[s.id] = s.statistics
-      }
-    }
-    var result = items.map(function (v) {
-      var st = statsMap[v.id.videoId] || {}
-      return {
-        id: v.id.videoId,
-        title: v.snippet.title,
-        thumb: v.snippet.thumbnails.high ? v.snippet.thumbnails.high.url : (v.snippet.thumbnails.medium ? v.snippet.thumbnails.medium.url : v.snippet.thumbnails.default.url),
-        published: v.snippet.publishedAt,
-        views: st.viewCount || '0',
-        channelTitle: v.snippet.channelTitle,
-        channelId: v.snippet.channelId
-      }
+    var flat = flatVideos(data.items, 'search')
+    if (!flat.ids.length) throw new Error('Video topilmadi')
+    var st = await ytFetch('videos', { part: 'statistics', id: flat.ids.join(',') })
+    var stMap = {}; if (st.items) { for (var i = 0; i < st.items.length; i++) { stMap[st.items[i].id] = st.items[i].statistics } }
+    var res = flat.ids.map(function (id) {
+      var v = flat.map[id]; var s = stMap[id] || {}
+      return { id: id, title: v.snippet.title, thumb: (v.snippet.thumbnails.high || v.snippet.thumbnails.medium || v.snippet.thumbnails.default).url, published: v.snippet.publishedAt, views: s.viewCount || '0', channel: v.snippet.channelTitle, channelId: v.snippet.channelId }
     })
-    setCached(query, result)
-    return result
-  }
-
-  async function fetchTrending() {
-    var cached = getCached('__trending__')
-    if (cached) return cached
-    var data = await ytFetch('videos', { part: 'snippet,statistics', chart: 'mostPopular', maxResults: 30 })
-    if (!data.items || !data.items.length) throw new Error('Trending videolar topilmadi')
-    var result = data.items.map(function (v) {
-      return { id: v.id, title: v.snippet.title, thumb: v.snippet.thumbnails.high ? v.snippet.thumbnails.high.url : (v.snippet.thumbnails.medium ? v.snippet.thumbnails.medium.url : v.snippet.thumbnails.default.url), published: v.snippet.publishedAt, views: (v.statistics && v.statistics.viewCount) || '0', channelTitle: v.snippet.channelTitle, channelId: v.snippet.channelId }
-    })
-    setCached('__trending__', result)
-    return result
+    setCached(query, res)
+    return res
   }
 
   function renderGrid(videos) {
     var grid = $('ytGrid'), loader = $('ytLoader'), error = $('ytError'), empty = $('ytEmpty')
     if (!grid) return
-    if (loader) loader.style.display = 'none'
-    if (error) error.style.display = 'none'
-    if (empty) empty.style.display = 'none'
-    if (!videos || !videos.length) {
-      if (empty) { empty.style.display = 'flex'; grid.innerHTML = '' }
-      return
-    }
-    var html = ''
+    hideLoader(); hideError(); hideEmpty()
+    if (!videos || !videos.length) { showEmpty(); return }
+    var html = '', prevId = playingId
     for (var i = 0; i < videos.length; i++) {
-      var v = videos[i]
-      html += '<div class="yt-card" data-id="' + v.id + '" onclick="window.playYTVideo(\'' + v.id + '\',\'' + escAttr(v.title) + '\')">' +
-        '<div class="yt-thumb-wrap"><img class="yt-thumb" src="' + escAttr(v.thumb) + '" loading="lazy" alt="' + escAttr(v.title) + '" /><div class="yt-thumb-overlay"><span class="yt-play-icon">▶</span></div></div>' +
-        '<div class="yt-card-info"><div class="yt-card-title">' + esc(v.title) + '</div><div class="yt-card-meta">' + esc(v.channelTitle) + ' · ' + formatViews(v.views) + ' marotaba ko\'rilgan · ' + timeAgo(v.published) + '</div></div></div>'
+      var v = videos[i], active = v.id === prevId ? ' active' : ''
+      html += '<div class="yt-card' + active + '" data-id="' + v.id + '">' +
+        '<div class="yt-thumb-wrap"><img class="yt-thumb" src="' + escAttr(v.thumb) + '" loading="lazy" alt="' + escAttr(v.title) + '" />' +
+        '<div class="yt-duration"></div></div>' +
+        '<div class="yt-card-body">' +
+        '<div class="yt-card-title">' + esc(v.title) + '</div>' +
+        '<div class="yt-card-channel">' + esc(v.channel) + '</div>' +
+        '<div class="yt-card-meta">' + fmt(v.views) + ' · ' + ago(v.published) + '</div></div></div>'
     }
     grid.innerHTML = html
+    grid.querySelectorAll('.yt-card').forEach(function (el) {
+      el.addEventListener('click', function () { playVideo(el.dataset.id) })
+    })
   }
 
-  function showLoading() {
-    var loader = $('ytLoader'), grid = $('ytGrid'), error = $('ytError'), empty = $('ytEmpty')
-    if (loader) loader.style.display = 'flex'
-    if (grid) grid.innerHTML = ''
-    if (error) error.style.display = 'none'
-    if (empty) empty.style.display = 'none'
+  function playVideo(id) {
+    if (!id) return
+    playingId = id
+    var grid = $('ytGrid')
+    if (grid) { grid.querySelectorAll('.yt-card.active').forEach(function (el) { el.classList.remove('active') }); var card = grid.querySelector('.yt-card[data-id="' + id + '"]'); if (card) card.classList.add('active') }
+    var bar = $('ytPlayerBar'), container = $('ytPlayer'), titleEl = $('ytPlayerTitle'), metaEl = $('ytPlayerMeta')
+    if (!bar || !container) return
+    var cardData = findVideoData(id)
+    if (titleEl) titleEl.textContent = cardData ? cardData.title : 'Video'
+    if (metaEl && cardData) metaEl.innerHTML = esc(cardData.channel) + ' · ' + fmt(cardData.views) + ' marotaba ko\'rilgan'
+    else if (metaEl) metaEl.innerHTML = ''
+    container.innerHTML = '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>'
+    bar.style.display = 'flex'
+    var feed = $('ytFeed')
+    if (feed) { feed.style.maxHeight = ''; setTimeout(function () { feed.style.maxHeight = 'calc(100% - ' + (bar.offsetHeight + 60) + 'px)'; feed.style.overflowY = 'auto' }, 50) }
   }
 
-  function showError(msg) {
-    var loader = $('ytLoader'), grid = $('ytGrid'), error = $('ytError'), empty = $('ytEmpty'), desc = $('ytErrorDesc')
-    if (loader) loader.style.display = 'none'
-    if (grid) grid.innerHTML = ''
-    if (empty) empty.style.display = 'none'
-    if (desc && msg) desc.textContent = msg
-    if (error) error.style.display = 'flex'
+  function findVideoData(id) {
+    var cards = document.querySelectorAll('.yt-card[data-id="' + id + '"]')
+    if (!cards.length) return null
+    var el = cards[0]
+    return { title: el.querySelector('.yt-card-title').textContent, channel: el.querySelector('.yt-card-channel').textContent, views: el.querySelector('.yt-card-meta').textContent.split('·')[0].trim() }
   }
 
-  function showEmpty() {
-    var loader = $('ytLoader'), grid = $('ytGrid'), error = $('ytError'), empty = $('ytEmpty')
-    if (loader) loader.style.display = 'none'
-    if (grid) grid.innerHTML = ''
-    if (error) error.style.display = 'none'
-    if (empty) empty.style.display = 'flex'
+  function closePlayer() {
+    var bar = $('ytPlayerBar'), container = $('ytPlayer'), feed = $('ytFeed')
+    if (bar) bar.style.display = 'none'
+    if (container) container.innerHTML = ''
+    if (feed) feed.style.maxHeight = ''
+    playingId = null
+    var grid = $('ytGrid')
+    if (grid) grid.querySelectorAll('.yt-card.active').forEach(function (el) { el.classList.remove('active') })
   }
+
+  function hideLoader() { var el = $('ytLoader'); if (el) el.style.display = 'none' }
+  function showLoader() { var el = $('ytLoader'); if (el) el.style.display = 'flex' }
+  function hideError() { var el = $('ytError'); if (el) el.style.display = 'none' }
+  function showError(msg) { var el = $('ytError'), d = $('ytErrorDesc'); if (el) el.style.display = 'flex'; if (d && msg) d.textContent = msg }
+  function hideEmpty() { var el = $('ytEmpty'); if (el) el.style.display = 'none' }
+  function showEmpty() { var el = $('ytEmpty'); if (el) el.style.display = 'flex' }
 
   function renderChips(activeId) {
-    var wrap = $('ytChips')
-    if (!wrap) return
-    var html = ''
-    for (var i = 0; i < CATEGORIES.length; i++) {
-      var c = CATEGORIES[i]
-      html += '<button class="yt-chip' + (c.id === activeId ? ' active' : '') + '" data-cat="' + c.id + '">' + c.label + '</button>'
-    }
-    wrap.innerHTML = html
+    var wrap = $('ytChips'); if (!wrap) return
+    wrap.innerHTML = CATEGORIES.map(function (c) { return '<button class="yt-chip' + (c.id === activeId ? ' active' : '') + '" data-cat="' + c.id + '">' + c.label + '</button>' }).join('')
     wrap.querySelectorAll('.yt-chip').forEach(function (el) {
-      el.addEventListener('click', function () {
-        var catId = el.dataset.cat
-        if (catId === currentCategory) return
-        currentCategory = catId
-        renderChips(catId)
-        loadByCategory(catId)
-      })
+      el.addEventListener('click', function () { var id = el.dataset.cat; if (id !== currentCategory) { currentCategory = id; renderChips(id); loadByCategory(id) } })
     })
   }
 
   async function loadByCategory(catId) {
-    showLoading()
-    var cat = null
-    for (var i = 0; i < CATEGORIES.length; i++) { if (CATEGORIES[i].id === catId) { cat = CATEGORIES[i]; break } }
+    showLoader(); hideError(); hideEmpty()
+    var cat = null; for (var ci = 0; ci < CATEGORIES.length; ci++) { if (CATEGORIES[ci].id === catId) { cat = CATEGORIES[ci]; break } }
     try {
-      if (catId === 'all') {
-        var vids = await fetchTrending()
-        if (vids && vids.length) renderGrid(vids)
-        else showEmpty()
-      } else if (cat && cat.query) {
-        var results = await searchVideos(cat.query)
-        if (results && results.length) renderGrid(results)
-        else showEmpty()
-      } else {
-        showEmpty()
-      }
-    } catch (e) {
-      if (e.name === 'AbortError') return
-      console.error('YouTube error:', e)
-      showError(e.message || 'Xatolik yuz berdi')
-    }
+      var vids = catId === 'all' ? await loadTrending() : cat && cat.query ? await searchVids(cat.query) : null
+      if (vids && vids.length) renderGrid(vids); else { showEmpty(); var g = $('ytGrid'); if (g) g.innerHTML = '' }
+    } catch (e) { if (e.name === 'AbortError') return; console.error(e); showError(e.message || 'Xatolik'); var g = $('ytGrid'); if (g) g.innerHTML = '' }
   }
 
   async function doSearch(query) {
-    if (!query || !query.trim()) {
-      currentCategory = 'all'
-      renderChips('all')
-      loadByCategory('all')
-      return
-    }
-    currentQuery = query.trim()
-    currentCategory = ''
-    renderChips('')
-    showLoading()
+    query = query.trim()
+    if (!query) { currentCategory = 'all'; renderChips('all'); loadByCategory('all'); return }
+    currentCategory = ''; renderChips(''); showLoader(); hideError(); hideEmpty()
     try {
-      var results = await searchVideos(currentQuery)
-      if (results && results.length) renderGrid(results)
-      else showEmpty()
-    } catch (e) {
-      if (e.name === 'AbortError') return
-      console.error('YouTube search error:', e)
-      showError(e.message || 'Xatolik yuz berdi')
-    }
+      var vids = await searchVids(query)
+      if (vids && vids.length) renderGrid(vids); else showEmpty()
+    } catch (e) { if (e.name === 'AbortError') return; console.error(e); showError(e.message || 'Xatolik') }
   }
 
   function setupSearch() {
-    var input = $('ytSearch')
-    if (!input) return
-    input.addEventListener('input', function () {
-      if (searchTimer) clearTimeout(searchTimer)
-      searchTimer = setTimeout(function () {
-        var q = input.value.trim()
-        if (q.length >= 2) doSearch(q)
-        else if (q.length === 0) {
-          currentCategory = 'all'
-          renderChips('all')
-          loadByCategory('all')
-        }
-      }, 500)
-    })
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        if (searchTimer) clearTimeout(searchTimer)
-        doSearch(input.value.trim())
-      }
-    })
+    var input = $('ytSearch'); if (!input) return
+    input.addEventListener('input', function () { if (searchTimer) clearTimeout(searchTimer); searchTimer = setTimeout(function () { var q = input.value.trim(); q.length >= 2 ? doSearch(q) : q.length === 0 && (currentCategory = 'all', renderChips('all'), loadByCategory('all')) }, 500) })
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { if (searchTimer) clearTimeout(searchTimer); doSearch(input.value.trim()) } })
   }
-
-  // Player overlay
-  window.playYTVideo = function (videoId, title) {
-    var overlay = $('ytPlayerOverlay'), container = $('ytPlayer'), titleEl = $('ytPlayerTitle')
-    if (!overlay || !container) return
-    if (titleEl) titleEl.textContent = title || 'Video'
-    container.innerHTML = '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>'
-    overlay.style.display = 'flex'
-  }
-
-  function closePlayer() {
-    var overlay = $('ytPlayerOverlay'), container = $('ytPlayer')
-    if (overlay) overlay.style.display = 'none'
-    if (container) container.innerHTML = ''
-  }
-  window.closeYTPlayer = closePlayer
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && $('ytPlayerOverlay') && $('ytPlayerOverlay').style.display === 'flex') closePlayer()
-  })
 
   window.initYoutube = function () {
-    renderChips('all')
-    setupSearch()
-    loadByCategory('all')
-    var ov = $('ytPlayerOverlay')
-    if (ov) ov.addEventListener('click', function (e) { if (e.target === ov) closePlayer() })
-    var closeBtn = $('ytClosePlayer')
+    renderChips('all'); setupSearch(); loadByCategory('all')
+    var closeBtn = $('ytPlayerClose')
     if (closeBtn) closeBtn.addEventListener('click', closePlayer)
   }
 })()
