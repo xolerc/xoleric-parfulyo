@@ -3062,6 +3062,23 @@ body {
   background: var(--bg2);
   color: var(--text);
 }
+.vp-player-nav {
+  width: 30px; height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.vp-player-nav:hover {
+  background: var(--bg1);
+  color: var(--text);
+}
 .vp-player-text {
   flex: 1;
   min-width: 0;
@@ -3141,7 +3158,6 @@ body {
   overflow-y: auto;
   scrollbar-width: thin;
   padding-bottom: 20px;
-  transition: max-height .3s ease;
 }
 
 .vp-load {

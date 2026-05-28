@@ -199,10 +199,8 @@
   }
 
   function resizeFeed() {
-    var bar = $('vpPlayer'), feed = $('vpFeed')
-    if (!feed || !bar) return
-    if (bar.style.display === 'none') { feed.style.maxHeight = ''; return }
-    setTimeout(function () { feed.style.maxHeight = 'calc(100% - ' + (bar.offsetHeight + 52) + 'px)'; feed.style.overflowY = 'auto' }, 100)
+    var feed = $('vpFeed')
+    if (feed) feed.style.maxHeight = ''
   }
 
   function closeP() {
@@ -252,6 +250,23 @@
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { if (st) clearTimeout(st); doSearch(inp.value.trim()) } })
   }
 
+  function getVideos() {
+    var grid = $('vpGrid')
+    if (!grid) return []
+    return Array.from(grid.querySelectorAll('.vp-card')).map(function (c) { return c.dataset.id }).filter(Boolean)
+  }
+
+  function nav(step) {
+    var ids = getVideos()
+    if (!ids.length) return
+    var idx = ids.indexOf(playing)
+    if (idx === -1) { if (step > 0) play(ids[0]); return }
+    var next = idx + step
+    if (next < 0) next = ids.length - 1
+    if (next >= ids.length) next = 0
+    play(ids[next])
+  }
+
   function setupToggle() {
     var btn = $('vpPlayerToggle')
     if (!btn) return
@@ -267,6 +282,8 @@
       }
       updateToggle()
     })
+    var p = $('vpPlayerPrev'); if (p) p.addEventListener('click', function () { nav(-1) })
+    var n = $('vpPlayerNext'); if (n) n.addEventListener('click', function () { nav(1) })
   }
 
   window.addEventListener('resize', resizeFeed)
