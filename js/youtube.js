@@ -1,14 +1,12 @@
 (function () {
   'use strict'
   var API_KEY = 'AIzaSyAwpEdIA_5_1aDPoMP0Q_ROE_zTrhoxwKs'
-  var CHANNEL_ID = 'UCkEM86vtj0ekHTCBfA6qTFQ'
   var CACHE_TTL = 30 * 60 * 1000
   var searchCache = {}
   var abortCtrl = null, searchTimer = null
 
   var CATEGORIES = [
     { id: 'all', label: 'Barcha', query: '' },
-    { id: 'trending', label: 'Trends', query: 'trending uz'},
     { id: 'tech', label: 'Texnologiya', query: 'texnologiya 2026' },
     { id: 'music', label: 'Musiqa', query: 'musiqa 2026' },
     { id: 'coding', label: 'Dasturlash', query: 'dasturlash 2026' },
@@ -105,25 +103,15 @@
     return result
   }
 
-  async function fetchChannelVideos() {
-    var cached = getCached('__channel__')
+  async function fetchTrending() {
+    var cached = getCached('__trending__')
     if (cached) return cached
-    var data = await ytFetch('search', { part: 'snippet', channelId: CHANNEL_ID, order: 'date', maxResults: 30, type: 'video' })
-    if (!data.items || !data.items.length) throw new Error('Kanalda video yo\'q')
-    var ids = data.items.map(function (v) { return v.id.videoId }).join(',')
-    var statsData = await ytFetch('videos', { part: 'statistics', id: ids })
-    var statsMap = {}
-    if (statsData.items) {
-      for (var i = 0; i < statsData.items.length; i++) {
-        var s = statsData.items[i]
-        statsMap[s.id] = s.statistics
-      }
-    }
+    var data = await ytFetch('videos', { part: 'snippet,statistics', chart: 'mostPopular', maxResults: 30 })
+    if (!data.items || !data.items.length) throw new Error('Trending videolar topilmadi')
     var result = data.items.map(function (v) {
-      var st = statsMap[v.id.videoId] || {}
-      return { id: v.id.videoId, title: v.snippet.title, thumb: v.snippet.thumbnails.high ? v.snippet.thumbnails.high.url : (v.snippet.thumbnails.medium ? v.snippet.thumbnails.medium.url : v.snippet.thumbnails.default.url), published: v.snippet.publishedAt, views: st.viewCount || '0', channelTitle: v.snippet.channelTitle, channelId: v.snippet.channelId }
+      return { id: v.id, title: v.snippet.title, thumb: v.snippet.thumbnails.high ? v.snippet.thumbnails.high.url : (v.snippet.thumbnails.medium ? v.snippet.thumbnails.medium.url : v.snippet.thumbnails.default.url), published: v.snippet.publishedAt, views: (v.statistics && v.statistics.viewCount) || '0', channelTitle: v.snippet.channelTitle, channelId: v.snippet.channelId }
     })
-    setCached('__channel__', result)
+    setCached('__trending__', result)
     return result
   }
 
@@ -198,8 +186,9 @@
     for (var i = 0; i < CATEGORIES.length; i++) { if (CATEGORIES[i].id === catId) { cat = CATEGORIES[i]; break } }
     try {
       if (catId === 'all') {
-        var vids = await fetchChannelVideos()
-        renderGrid(vids)
+        var vids = await fetchTrending()
+        if (vids && vids.length) renderGrid(vids)
+        else showEmpty()
       } else if (cat && cat.query) {
         var results = await searchVideos(cat.query)
         if (results && results.length) renderGrid(results)
