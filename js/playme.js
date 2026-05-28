@@ -239,6 +239,15 @@
     })()
 
     renderList()
-    playVideo(0)
+    /* Show controls so user can tap play */
+    controls.classList.add('visible')
+    /* Don't autoplay on init - browser blocks it */
+    var first = VIDEOS[0]
+    if (first) { video.src = first.file; titleEl.textContent = first.title }
+    /* Click to start */
+    wrap.addEventListener('click', function startOnce(e) {
+      if (e.target.closest('.playme-controls, .playme-item, .playme-tool-btn')) return
+      if (video.paused && video.currentTime === 0) { playVideo(0); controls.classList.remove('visible') }
+    }, { once: true })
   }
 })()
