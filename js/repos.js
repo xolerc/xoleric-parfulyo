@@ -2,10 +2,16 @@
   'use strict'
   var allRepos = []
 
-  function langClass(lang) {
-    var m = { javascript: 'js', typescript: 'typescript', python: 'python', html: 'html', css: 'css', kotlin: 'kotlin' }
-    return m[(lang || '').toLowerCase()] || ''
+  function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
+
+  var LANG_COLORS = {
+    javascript: '#f7df1e', typescript: '#3178c6', python: '#3572a5', html: '#e34c26',
+    css: '#563d7c', kotlin: '#a97bff', java: '#b07219', go: '#00add8', rust: '#dea584',
+    php: '#4f5d95', ruby: '#701516', c: '#555555', 'c++': '#f34b7d', 'c#': '#178600',
+    swift: '#ffac45', dart: '#00b4ab', scala: '#c22d40', shell: '#89e051'
   }
+
+  function langColor(lang) { return LANG_COLORS[(lang || '').toLowerCase()] || '#8b8b8b' }
 
   function renderRepos(repos) {
     var grid = document.getElementById('projectsGrid')
@@ -13,17 +19,18 @@
     if (!repos.length) { grid.innerHTML = '<p style="color:var(--text-secondary);text-align:center;grid-column:1/-1;padding:40px;font-size:13px;">Hech narsa topilmadi.</p>'; return }
     grid.innerHTML = repos.map(function (r) {
       var lang = r.language || '', desc = r.description || 'Tavsif mavjud emas.'
-      var stars = r.stargazers_count || 0, forks = r.forks_count || 0, hp = r.homepage || ''
-      return '<div class="project-card">' +
-        '<div class="project-name">' + window.escHtml(r.name) + '</div>' +
-        '<div class="project-desc">' + window.escHtml(desc) + '</div>' +
-        (lang ? '<div class="project-tags"><span class="project-tag ' + langClass(lang) + '">' + window.escHtml(lang) + '</span></div>' : '') +
-        '<div class="project-meta"><span class="project-stars">' + stars + '</span><span class="project-forks">' + forks + '</span></div>' +
-        '<div class="project-actions">' +
-        '<a href="' + r.html_url + '" target="_blank" rel="noopener noreferrer" class="project-action github">GitHub</a>' +
-        (hp ? '<a href="' + hp + '" target="_blank" rel="noopener noreferrer" class="project-action demo">Sayt</a>' : '') +
-        '</div></div>'
+      return '<div class="project-card" tabindex="0" role="button" data-url="' + esc(r.html_url) + '">' +
+        '<div class="project-card-top">' +
+        '<div class="project-card-title">' + esc(r.name) + '</div>' +
+        '<span class="project-card-gh" title="GitHub"></span>' +
+        '</div>' +
+        '<div class="project-card-desc">' + esc(desc) + '</div>' +
+        (lang ? '<div class="project-card-lang"><span class="project-lang-dot" style="background:' + langColor(lang) + '"></span>' + esc(lang) + '</div>' : '') +
+        '</div>'
     }).join('')
+    grid.querySelectorAll('.project-card').forEach(function (c) {
+      c.addEventListener('click', function () { var u = c.dataset.url; if (u) window.open(u, '_blank') })
+    })
   }
 
   function filterAndRender() {
@@ -69,7 +76,7 @@
         filterAndRender()
       } catch (err) {
         loading.innerHTML = '<span style="color:var(--text-muted)">Yuklashda xatolik. Qayta urinib ko\'ring.</span>'
-        grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;grid-column:1/-1;padding:40px;font-size:13px;">' + window.escHtml(err.message || 'Xatolik') + '</p>'
+        grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;grid-column:1/-1;padding:40px;font-size:13px;">' + esc(err.message || 'Xatolik') + '</p>'
       }
     })()
 
@@ -77,9 +84,14 @@
       var langs = [...new Set(allRepos.map(function (r) { return r.language }).filter(Boolean))]
       var fc = document.getElementById('projectsFilters')
       if (!fc || !langs.length) return
-      fc.innerHTML = '<button class="project-filter-btn active" data-lang="">Barchasi</button>' + langs.map(function (l) { return '<button class="project-filter-btn" data-lang="' + l + '">' + l + '</button>' }).join('')
+      fc.innerHTML = '<button class="project-filter-btn active" data-lang="">Barchasi</button>' + langs.map(function (l) { return '<button class="project-filter-btn" data-lang="' + l + '"><span class="filter-glow"></span>' + esc(l) + '</button>' }).join('')
+      fc.querySelector('.project-filter-btn.active') && fc.querySelector('.project-filter-btn.active').classList.add('glow')
       fc.querySelectorAll('.project-filter-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () { fc.querySelectorAll('.project-filter-btn').forEach(function (b) { b.classList.remove('active') }); btn.classList.add('active'); filterAndRender() })
+        btn.addEventListener('click', function () {
+          fc.querySelectorAll('.project-filter-btn').forEach(function (b) { b.classList.remove('active', 'glow') })
+          btn.classList.add('active', 'glow')
+          filterAndRender()
+        })
       })
     }
 

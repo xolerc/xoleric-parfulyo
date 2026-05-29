@@ -163,10 +163,23 @@
     } catch (e) {}
   }
 
-  var timeIv = null
+  var timeIv = null, bgIv = null
 
   function startTimeTick() { stopTimeTick(); timeIv = setInterval(updateTime, 1000) }
   function stopTimeTick() { if (timeIv) { clearInterval(timeIv); timeIv = null } }
+
+  function stopBgPlay() { if (bgIv) { clearInterval(bgIv); bgIv = null } }
+
+  function startBgPlay() {
+    stopBgPlay()
+    if (!document.hidden || manualPause || !ytPlayer || !playerReady) return
+    bgIv = setInterval(function () {
+      if (!ytPlayer || !playerReady || manualPause || !document.hidden) { stopBgPlay(); return }
+      try {
+        if (ytPlayer.getPlayerState() === 2) ytPlayer.playVideo()
+      } catch (e) {}
+    }, 400)
+  }
 
   function stopRetry() { if (retryTimer) { clearInterval(retryTimer); retryTimer = null } }
 
@@ -261,6 +274,30 @@
     }).catch(function () { hideSkel() })
   }
 
+  function loadRelated(id) {
+    var cd = cardData(id)
+    if (!cd) { $('vpRelated') && ($('vpRelated').style.display = 'none'); return }
+    var q = cd.title.split(' ').slice(0, 4).join(' ')
+    var relEl = $('vpRelated'), listEl = $('vpRelatedList')
+    if (!relEl || !listEl) return
+    search(q).then(function (v) {
+      if (!v || !v.length) { relEl.style.display = 'none'; return }
+      v = v.filter(function (x) { return x.id !== id })
+      if (v.length > 8) v = v.slice(0, 8)
+      if (!v.length) { relEl.style.display = 'none'; return }
+      listEl.innerHTML = v.map(function (x) {
+        return '<div class="vp-rel-card" data-id="' + escA(x.id) + '">' +
+          '<div class="vp-rel-thumb"><img src="' + escA(x.thumb) + '" loading="lazy" alt="" /></div>' +
+          '<div class="vp-rel-body"><div class="vp-rel-title">' + esc(x.title) + '</div>' +
+          '<div class="vp-rel-chan">' + esc(x.channel) + '</div></div></div>'
+      }).join('')
+      listEl.querySelectorAll('.vp-rel-card').forEach(function (el) {
+        el.addEventListener('click', function () { play(el.dataset.id) })
+      })
+      relEl.style.display = 'block'
+    }).catch(function () { relEl.style.display = 'none' })
+  }
+
   function play(id) {
     if (!id) return
     playing = id; manualPause = false
@@ -281,6 +318,7 @@
     createPlayer(id)
     resizeF()
     setupShare()
+    loadRelated(id)
   }
 
   var shareTimer = null
@@ -304,10 +342,15 @@
   }
 
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && ytPlayer && playerReady && !manualPause) {
-      var s = ytPlayer.getPlayerState()
-      if (s === 3 || s === -1) {
-        try { ytPlayer.playVideo() } catch (ex) {}
+    if (document.hidden) {
+      if (ytPlayer && playerReady && !manualPause) startBgPlay()
+    } else {
+      stopBgPlay()
+      if (ytPlayer && playerReady && !manualPause) {
+        try {
+          var s = ytPlayer.getPlayerState()
+          if (s === 2 || s === 3 || s === -1) ytPlayer.playVideo()
+        } catch (e) {}
       }
     }
   })
@@ -349,7 +392,8 @@
     w.querySelectorAll('.vp-chip:not([data-chan])').forEach(function (el) {
       el.addEventListener('click', function () {
         var id2 = el.dataset.i
-        if (id2 !== cat || chanFilter) { cat = id2; chanFilter = null; chips(id2); load(id2) }
+        if (id2 === cat && !chanFilter) { load(id2); return }
+        cat = id2; chanFilter = null; chips(id2); load(id2)
       })
     })
   }
@@ -631,9 +675,23 @@
     clr.addEventListener('click', function () { hist = []; localStorage.setItem('vp_hist', JSON.stringify(hist)); renderHist() })
   }
 
+  function setupScrollRefresh() {
+    var feed = $('vpFeed')
+    if (!feed) return
+    var lastTop = 0
+    feed.addEventListener('scroll', function () {
+      var top = feed.scrollTop
+      if (top <= -20 && lastTop <= -20 && cat && !loadMtx) {
+        feed.scrollTop = 0
+        load(cat)
+      }
+      lastTop = top
+    })
+  }
+
   window.initYoutube = function () {
     chips('all'); setupSearch(); setupVolume(); setupSpeed(); setupQuality(); setupMinimize()
-    setupKeyboard(); setupHistClear(); renderHist()
+    setupKeyboard(); setupHistClear(); renderHist(); setupScrollRefresh()
     var x = $('vpPlayerX'); if (x) x.addEventListener('click', closeP)
     var lm = $('vpLoadMoreBtn'); if (lm) lm.addEventListener('click', loadMore)
     load('all')
