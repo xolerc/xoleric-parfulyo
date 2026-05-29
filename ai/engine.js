@@ -279,7 +279,13 @@
         }
       }
 
-      // 13. Fallback — try to learn
+      // 13. Check QA dataset (1000+ questions)
+      if (window.XOLERIC_QA_FIND) {
+        var qaAnswer = window.XOLERIC_QA_FIND(text)
+        if (qaAnswer) { callback(qaAnswer); return }
+      }
+
+      // 14. Fallback — try to learn
       var fb = DB.fallback[Math.floor(Math.random() * DB.fallback.length)]
       callback(fb)
 
