@@ -146,9 +146,19 @@
     fullBtn.addEventListener('click', function () { if (document.fullscreenElement) document.exitFullscreen(); else video.requestFullscreen() })
     if (pipBtn) pipBtn.addEventListener('click', function () { if (window.controller.isPipActive()) window.controller.exitPip(); else window.controller.enterPip(VID) })
 
-    video.addEventListener('play', function () { playBtn.classList.add('playing'); wrap.classList.add('playing'); showCtrl(); preloadNext() })
-    video.addEventListener('pause', function () { playBtn.classList.remove('playing'); wrap.classList.remove('playing'); controls.classList.add('visible') })
-    video.addEventListener('ended', function () { wrap.classList.remove('playing'); playVideo((ci + 1) % VIDEOS.length) })
+    video.addEventListener('play', function () {
+      playBtn.classList.add('playing'); wrap.classList.add('playing'); showCtrl(); preloadNext()
+      try { if (window.Android) Android.onMediaPlay() } catch (e) {}
+    })
+    video.addEventListener('pause', function () {
+      playBtn.classList.remove('playing'); wrap.classList.remove('playing'); controls.classList.add('visible')
+      try { if (window.Android) Android.onMediaPause() } catch (e) {}
+    })
+    video.addEventListener('ended', function () {
+      wrap.classList.remove('playing')
+      try { if (window.Android) Android.onMediaPause() } catch (e) {}
+      playVideo((ci + 1) % VIDEOS.length)
+    })
     video.addEventListener('timeupdate', function () {
       currentEl.textContent = fmt(video.currentTime)
       durEl.textContent = fmt(video.duration)
@@ -249,5 +259,20 @@
       if (e.target.closest('.playme-controls, .playme-item, .playme-tool-btn')) return
       if (video.paused && video.currentTime === 0) { playVideo(0); controls.classList.remove('visible') }
     }, { once: true })
+
+    /* Background audio: auto-resume on return from lock/background */
+    var playmeManualPause = false
+    video.addEventListener('pause', function () { playmeManualPause = true })
+    video.addEventListener('play', function () { playmeManualPause = false })
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden && video.paused && !playmeManualPause && video.currentTime > 0) {
+        video.play().catch(function () {})
+      }
+    })
+    window.addEventListener('appresume', function () {
+      if (video.paused && !playmeManualPause && video.currentTime > 0) {
+        video.play().catch(function () {})
+      }
+    })
   }
 })()

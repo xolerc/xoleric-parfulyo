@@ -229,15 +229,18 @@
                 manualPause = false; updateToggle(); startTimeTick()
                 var cd = cardData(videoId)
                 if (cd) addHist({ id: videoId, title: cd.title, channel: cd.channel })
+                try { if (window.Android) Android.onMediaPlay() } catch (ex) {}
               } else if (state === 2) {
                 if (!document.hidden && !manualPause) manualPause = true
                 updateToggle(); stopTimeTick()
                 try { saveCW(videoId, ytPlayer.getCurrentTime()) } catch (ex) {}
+                try { if (window.Android) Android.onMediaPause() } catch (ex) {}
               } else if (state === 3) {
                 if (!manualPause) startRetry()
                 updateToggle()
               } else if (state === 0) {
                 stopTimeTick(); updateToggle()
+                try { if (window.Android) Android.onMediaPause() } catch (ex) {}
                 if (manualPause) return
                 setTimeout(function () {
                   if (!ytPlayer || manualPause) return
@@ -352,6 +355,17 @@
           if (s === 2 || s === 3 || s === -1) ytPlayer.playVideo()
         } catch (e) {}
       }
+    }
+  })
+
+  /* WebView background resume (from APK MainActivity) */
+  window.addEventListener('appresume', function () {
+    if (ytPlayer && playerReady && !manualPause) {
+      stopBgPlay()
+      try {
+        var s = ytPlayer.getPlayerState()
+        if (s === 2 || s === 3 || s === -1) ytPlayer.playVideo()
+      } catch (e) {}
     }
   })
 

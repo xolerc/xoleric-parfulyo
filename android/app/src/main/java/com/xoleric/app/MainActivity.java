@@ -1,10 +1,14 @@
 package com.xoleric.app;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.view.KeyEvent;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
@@ -19,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar progressBar;
+    private PowerManager.WakeLock wakeLock;
     private static final String URL = "https://xolerc.github.io/xoleric-parfulyo/";
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -41,6 +46,19 @@ public class MainActivity extends AppCompatActivity {
         webView.getSettings().setAllowContentAccess(false);
         webView.getSettings().setDatabaseEnabled(true);
         webView.getSettings().setSupportZoom(false);
+        webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+
+        /* JavaScript interface for media control from web page */
+        webView.addJavascriptInterface(new Object() {
+            @JavascriptInterface
+            public void onMediaPlay() {
+                startAudioService();
+            }
+            @JavascriptInterface
+            public void onMediaPause() {
+                stopAudioService();
+            }
+        }, "Android");
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -87,6 +105,48 @@ public class MainActivity extends AppCompatActivity {
         swipeRefresh.setOnRefreshListener(() -> webView.reload());
 
         webView.loadUrl(URL);
+    }
+
+    private void startAudioService() {
+        Intent intent = new Intent(this, AudioService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            startService(intent);
+        }
+    }
+
+    private void stopAudioService() {
+        stopService(new Intent(this, AudioService.class));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        /* Keep WebView alive in background for audio playback */
+        webView.onResume();
+        /* Notify JS that app went to background */
+        webView.evaluateJavascript(
+            "try{window.dispatchEvent(new Event('apppause'))}catch(e){}",
+            null
+        );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        webView.onResume();
+        /* Notify JS that app is back */
+        webView.evaluateJavascript(
+            "try{window.dispatchEvent(new Event('appresume'))}catch(e){}",
+            null
+        );
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopAudioService();
     }
 
     @Override
