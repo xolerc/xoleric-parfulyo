@@ -260,9 +260,9 @@
   }
 
   var LANG = {
-    uz: { 'nav.home': 'Ish maydoni', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Pleer', 'nav.projects': 'Loyihalar', 'nav.settings': 'Sozlamalar', 'bn.home': 'Asosiy', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Pleer', 'bn.projects': 'Loyihalar', 'bn.settings': 'Sozlamalar', 'hero.badge': 'DASTURCHI • DIZAYNER • MUHANDIS', 'hero.desc': 'Frontend arxitektori. Tizimlar quruvchi. Interfeyslar yaratuvchi.', 'hero.projects': 'Loyihalar', 'hero.chat': 'Chat', 'hero.contact': 'Aloqa', 'chat.title': 'Xabarlar', 'chat.online': 'online', 'chat.loading': 'Xabarlar yuklanmoqda...', 'playme.title': 'Pleer', 'playme.desc': 'Video darsliklar to\'plami', 'playme.list': 'Pleer ro\'yxati', 'projects.title': 'Loyihalar', 'projects.desc': 'GitHub\'dagi barcha ochiq manbali loyihalar', 'projects.search': 'Loyihalarni qidirish...', 'contact.title': 'Aloqa', 'contact.desc': 'Loyihalar va hamkorlik uchun', 'settings.title': 'Sozlamalar', 'settings.desc': 'Ilova sozlamalari va yuklamalar', 'settings.theme': 'Interfeys temasi', 'settings.theme.desc': 'Ilova ko\'rinishini o\'zingizga moslang', 'settings.notif': 'Bildirishnomalar', 'settings.notif_sound': 'Xabar ovozi', 'settings.dnd': 'Menga yozmaslik', 'settings.cache': 'Keshni tozalash', 'settings.cache.clear': 'Tozalash', 'settings.lang': 'Til', 'settings.export': "Ma'lumotlarni eksport qilish", 'loader.text': 'Tizim yuklanmoqda...', 'chat.empty': 'Xabarlar yo\'q', 'chat.input': 'Xabar yozing...', 'chat.main': 'Umumiy Chat', 'chat.main.sub': 'Barcha xabarlar' },
-    en: { 'nav.home': 'Workspace', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Player', 'nav.projects': 'Projects', 'nav.settings': 'Settings', 'bn.home': 'Home', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Player', 'bn.projects': 'Projects', 'bn.settings': 'Settings', 'hero.badge': 'DEVELOPER • DESIGNER • ENGINEER', 'hero.desc': 'Frontend architect. System builder. Interface creator.', 'hero.projects': 'Projects', 'hero.chat': 'Chat', 'hero.contact': 'Contact', 'chat.title': 'Messages', 'chat.online': 'online', 'chat.loading': 'Loading messages...', 'playme.title': 'Player', 'playme.desc': 'Video tutorial collection', 'playme.list': 'Playlist', 'projects.title': 'Projects', 'projects.desc': 'All open-source projects on GitHub', 'projects.search': 'Search projects...', 'contact.title': 'Contact', 'contact.desc': 'For projects and collaboration', 'settings.title': 'Settings', 'settings.desc': 'App settings and downloads', 'settings.theme': 'Theme', 'settings.theme.desc': 'Customize the app appearance', 'settings.notif': 'Notifications', 'settings.notif_sound': 'Message sound', 'settings.dnd': 'Do not disturb', 'settings.cache': 'Clear cache', 'settings.cache.clear': 'Clear', 'settings.lang': 'Language', 'settings.export': 'Export data', 'loader.text': 'Loading system...', 'chat.empty': 'No messages', 'chat.input': 'Write a message...', 'chat.main': 'General Chat', 'chat.main.sub': 'All messages' },
-    ru: { 'nav.home': 'Рабочее место', 'nav.chat': 'Чат', 'nav.video': 'Видео', 'nav.playme': 'Плеер', 'nav.projects': 'Проекты', 'nav.settings': 'Настройки', 'bn.home': 'Главная', 'bn.chat': 'Чат', 'bn.video': 'Видео', 'bn.playme': 'Плеер', 'bn.projects': 'Проекты', 'bn.settings': 'Настройки', 'hero.badge': 'РАЗРАБОТЧИК • ДИЗАЙНЕР • ИНЖЕНЕР', 'hero.desc': 'Фронтенд-архитектор. Строитель систем. Создатель интерфейсов.', 'hero.projects': 'Проекты', 'hero.chat': 'Чат', 'hero.contact': 'Контакты', 'chat.title': 'Сообщения', 'chat.online': 'онлайн', 'chat.loading': 'Загрузка сообщений...', 'playme.title': 'Плеер', 'playme.desc': 'Коллекция видеоуроков', 'playme.list': 'Плейлист', 'projects.title': 'Проекты', 'projects.desc': 'Все открытые проекты на GitHub', 'projects.search': 'Поиск проектов...', 'contact.title': 'Контакты', 'contact.desc': 'Для проектов и сотрудничества', 'settings.title': 'Настройки', 'settings.desc': 'Настройки приложения и загрузки', 'settings.theme': 'Тема', 'settings.theme.desc': 'Настройте внешний вид приложения', 'settings.notif': 'Уведомления', 'settings.notif_sound': 'Звук сообщения', 'settings.dnd': 'Не беспокоить', 'settings.cache': 'Очистить кеш', 'settings.cache.clear': 'Очистить', 'settings.lang': 'Язык', 'settings.export': 'Экспорт данных', 'loader.text': 'Загрузка системы...', 'chat.empty': 'Нет сообщений', 'chat.input': 'Напишите сообщение...', 'chat.main': 'Общий чат', 'chat.main.sub': 'Все сообщения' }
+    uz: { 'nav.home': 'Ish maydoni', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Pleer', 'nav.ai': 'AI', 'nav.generator': 'Generator', 'nav.projects': 'Loyihalar', 'nav.settings': 'Sozlamalar', 'bn.home': 'Asosiy', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Pleer', 'bn.ai': 'AI', 'bn.generator': 'Generator', 'bn.projects': 'Loyihalar', 'bn.settings': 'Sozlamalar', 'hero.badge': 'DASTURCHI • DIZAYNER • MUHANDIS', 'hero.desc': 'Frontend arxitektori. Tizimlar quruvchi. Interfeyslar yaratuvchi.', 'hero.projects': 'Loyihalar', 'hero.chat': 'Chat', 'hero.contact': 'Aloqa', 'hero.ai': 'AI', 'chat.title': 'Xabarlar', 'chat.online': 'online', 'chat.loading': 'Xabarlar yuklanmoqda...', 'playme.title': 'Pleer', 'playme.desc': 'Video darsliklar to\'plami', 'playme.list': 'Pleer ro\'yxati', 'projects.title': 'Loyihalar', 'projects.desc': 'GitHub\'dagi barcha ochiq manbali loyihalar', 'projects.search': 'Loyihalarni qidirish...', 'contact.title': 'Aloqa', 'contact.desc': 'Loyihalar va hamkorlik uchun', 'settings.title': 'Sozlamalar', 'settings.desc': 'Ilova sozlamalari va yuklamalar', 'settings.theme': 'Interfeys temasi', 'settings.theme.desc': 'Ilova ko\'rinishini o\'zingizga moslang', 'settings.notif': 'Bildirishnomalar', 'settings.notif_sound': 'Xabar ovozi', 'settings.dnd': 'Menga yozmaslik', 'settings.cache': 'Keshni tozalash', 'settings.cache.clear': 'Tozalash', 'settings.lang': 'Til', 'settings.export': "Ma'lumotlarni eksport qilish", 'loader.text': 'Tizim yuklanmoqda...', 'chat.empty': 'Xabarlar yo\'q', 'chat.input': 'Xabar yozing...', 'chat.main': 'Umumiy Chat', 'chat.main.sub': 'Barcha xabarlar' },
+    en: { 'nav.home': 'Workspace', 'nav.chat': 'Chat', 'nav.video': 'Video', 'nav.playme': 'Player', 'nav.ai': 'AI', 'nav.generator': 'Generator', 'nav.projects': 'Projects', 'nav.settings': 'Settings', 'bn.home': 'Home', 'bn.chat': 'Chat', 'bn.video': 'Video', 'bn.playme': 'Player', 'bn.ai': 'AI', 'bn.generator': 'Generator', 'bn.projects': 'Projects', 'bn.settings': 'Settings', 'hero.badge': 'DEVELOPER • DESIGNER • ENGINEER', 'hero.desc': 'Frontend architect. System builder. Interface creator.', 'hero.projects': 'Projects', 'hero.chat': 'Chat', 'hero.contact': 'Contact', 'hero.ai': 'AI', 'chat.title': 'Messages', 'chat.online': 'online', 'chat.loading': 'Loading messages...', 'playme.title': 'Player', 'playme.desc': 'Video tutorial collection', 'playme.list': 'Playlist', 'projects.title': 'Projects', 'projects.desc': 'All open-source projects on GitHub', 'projects.search': 'Search projects...', 'contact.title': 'Contact', 'contact.desc': 'For projects and collaboration', 'settings.title': 'Settings', 'settings.desc': 'App settings and downloads', 'settings.theme': 'Theme', 'settings.theme.desc': 'Customize the app appearance', 'settings.notif': 'Notifications', 'settings.notif_sound': 'Message sound', 'settings.dnd': 'Do not disturb', 'settings.cache': 'Clear cache', 'settings.cache.clear': 'Clear', 'settings.lang': 'Language', 'settings.export': 'Export data', 'loader.text': 'Loading system...', 'chat.empty': 'No messages', 'chat.input': 'Write a message...', 'chat.main': 'General Chat', 'chat.main.sub': 'All messages' },
+    ru: { 'nav.home': 'Рабочее место', 'nav.chat': 'Чат', 'nav.video': 'Видео', 'nav.playme': 'Плеер', 'nav.ai': 'AI', 'nav.generator': 'Генератор', 'nav.projects': 'Проекты', 'nav.settings': 'Настройки', 'bn.home': 'Главная', 'bn.chat': 'Чат', 'bn.video': 'Видео', 'bn.playme': 'Плеер', 'bn.ai': 'AI', 'bn.generator': 'Генератор', 'bn.projects': 'Проекты', 'bn.settings': 'Настройки', 'hero.badge': 'РАЗРАБОТЧИК • ДИЗАЙНЕР • ИНЖЕНЕР', 'hero.desc': 'Фронтенд-архитектор. Строитель систем. Создатель интерфейсов.', 'hero.projects': 'Проекты', 'hero.chat': 'Чат', 'hero.contact': 'Контакты', 'hero.ai': 'AI', 'chat.title': 'Сообщения', 'chat.online': 'онлайн', 'chat.loading': 'Загрузка сообщений...', 'playme.title': 'Плеер', 'playme.desc': 'Коллекция видеоуроков', 'playme.list': 'Плейлист', 'projects.title': 'Проекты', 'projects.desc': 'Все открытые проекты на GitHub', 'projects.search': 'Поиск проектов...', 'contact.title': 'Контакты', 'contact.desc': 'Для проектов и сотрудничества', 'settings.title': 'Настройки', 'settings.desc': 'Настройки приложения и загрузки', 'settings.theme': 'Тема', 'settings.theme.desc': 'Настройте внешний вид приложения', 'settings.notif': 'Уведомления', 'settings.notif_sound': 'Звук сообщения', 'settings.dnd': 'Не беспокоить', 'settings.cache': 'Очистить кеш', 'settings.cache.clear': 'Очистить', 'settings.lang': 'Язык', 'settings.export': 'Экспорт данных', 'loader.text': 'Загрузка системы...', 'chat.empty': 'Нет сообщений', 'chat.input': 'Напишите сообщение...', 'chat.main': 'Общий чат', 'chat.main.sub': 'Все сообщения' }
   }
 
   window.applyLanguage = function (lang) {
@@ -376,6 +376,165 @@
     if (document.readyState === 'complete') hide()
     else window.addEventListener('load', hide)
   }
+  function initGenerator() {
+    var gen = window.XOLERIC_GEN
+    if (!gen) return
+    var canvas = document.getElementById('genCanvas'), typeBar = document.getElementById('genTypeBar')
+    var paramsEl = document.getElementById('genParams'), generateBtn = document.getElementById('genGenerateBtn')
+    var animateBtn = document.getElementById('genAnimateBtn'), saveBtn = document.getElementById('genSaveBtn')
+    var exportBtn = document.getElementById('genExportBtn'), filterBtn = document.getElementById('genFilterBtn')
+    var filterWrap = document.getElementById('genFilterWrap'), filterSelect = document.getElementById('genFilterSelect')
+    var filterIntensity = document.getElementById('genFilterIntensity'), filterApply = document.getElementById('genFilterApply')
+    var galleryGrid = document.getElementById('genGalleryGrid'), galleryClear = document.getElementById('genGalleryClear')
+    if (!canvas) return
+
+    var currentType = localStorage.getItem('xolerc_gen_type') || 'galaxy'
+    var currentParams = {}
+    var isAnimating = false
+    var filterApplied = null
+
+    function renderTypeBar() {
+      var names = gen.list()
+      typeBar.innerHTML = ''
+      for (var i = 0; i < names.length; i++) {
+        var info = gen.getInfo(names[i])
+        var btn = document.createElement('button')
+        btn.className = 'gen-type-btn' + (names[i] === currentType ? ' active' : '')
+        btn.innerHTML = (info.icon || '') + ' ' + info.name
+        btn.dataset.type = names[i]
+        btn.addEventListener('click', function (type) { return function () { selectType(type) } }(names[i]))
+        typeBar.appendChild(btn)
+      }
+    }
+
+    function selectType(type) {
+      if (isAnimating) { gen.stopAnimation('main'); isAnimating = false; animateBtn.textContent = '▶ Animatsiya' }
+      currentType = type
+      localStorage.setItem('xolerc_gen_type', type)
+      renderTypeBar()
+      currentParams = gen.getDefaultParams(type)
+      renderParams()
+      generate()
+    }
+
+    function renderParams() {
+      var info = gen.getInfo(currentType)
+      if (!info || !info.params) { paramsEl.innerHTML = ''; return }
+      paramsEl.innerHTML = ''
+      for (var i = 0; i < info.params.length; i++) {
+        var p = info.params[i]
+        if (p.type === 'bool') {
+          var label = document.createElement('label')
+          label.className = 'gen-param'
+          var cb = document.createElement('input')
+          cb.type = 'checkbox'; cb.checked = currentParams[p.key]
+          cb.addEventListener('change', function (k) { return function () { currentParams[k] = cb.checked; generate() } }(p.key))
+          label.appendChild(cb)
+          label.appendChild(document.createTextNode(p.label))
+          paramsEl.appendChild(label)
+        } else {
+          var wrapper = document.createElement('span')
+          wrapper.className = 'gen-param'
+          var lbl = document.createElement('label')
+          lbl.textContent = p.label + ': ' + currentParams[p.key]
+          var inp = document.createElement('input')
+          inp.type = 'range'; inp.className = 'gen-range'
+          inp.min = p.min; inp.max = p.max; inp.step = p.step; inp.value = currentParams[p.key]
+          inp.addEventListener('input', function (k, l) { return function () { currentParams[k] = parseFloat(inp.value); l.textContent = p.label + ': ' + currentParams[k]; generate() } }(p.key, lbl))
+          wrapper.appendChild(lbl)
+          wrapper.appendChild(inp)
+          paramsEl.appendChild(wrapper)
+        }
+      }
+    }
+
+    function generate() {
+      if (isAnimating) { gen.stopAnimation('main'); isAnimating = false; animateBtn.textContent = '▶ Animatsiya' }
+      filterApplied = null
+      filterSelect.value = 'none'
+      canvas.width = canvas.clientWidth * (window.devicePixelRatio || 1)
+      canvas.height = canvas.clientHeight * (window.devicePixelRatio || 1)
+      gen.generate(currentType, canvas, currentParams)
+    }
+
+    function toggleAnimate() {
+      if (isAnimating) {
+        gen.stopAnimation('main'); isAnimating = false
+        animateBtn.textContent = '▶ Animatsiya'
+      } else {
+        var info = gen.getInfo(currentType)
+        if (!info.animate) return
+        isAnimating = true
+        animateBtn.textContent = '⏹ To\'xtat'
+        canvas.width = canvas.clientWidth * (window.devicePixelRatio || 1)
+        canvas.height = canvas.clientHeight * (window.devicePixelRatio || 1)
+        gen.startAnimation(currentType, canvas, currentParams, 'main')
+      }
+    }
+
+    function saveImage() {
+      gen.saveToGallery(canvas)
+      renderGallery()
+    }
+
+    function exportImage() { gen.exportPNG(canvas) }
+
+    function applyFilter() {
+      var name = filterSelect.value
+      if (name === 'none') { filterApplied = null; generate(); return }
+      var intensity = parseFloat(filterIntensity.value)
+      gen.filters.apply(canvas.getContext('2d'), canvas.width, canvas.height, name, intensity)
+      filterApplied = name
+    }
+
+    function renderGallery() {
+      var items = gen.getGallery()
+      if (items.length === 0) { galleryGrid.innerHTML = '<div class="gen-gallery-empty">Hali rasm yo\'q</div>'; return }
+      galleryGrid.innerHTML = ''
+      for (var i = 0; i < items.length; i++) {
+        (function (idx) {
+          var div = document.createElement('div')
+          div.className = 'gen-gallery-item'
+          var img = document.createElement('img')
+          img.src = items[idx].data
+          img.alt = 'Generated ' + idx
+          div.appendChild(img)
+          var del = document.createElement('button')
+          del.className = 'gen-gallery-del'
+          del.textContent = '✕'
+          del.addEventListener('click', function (e) { e.stopPropagation(); var g = gen.getGallery(); g.splice(idx, 1); localStorage.setItem('xolerc_gallery', JSON.stringify(g)); renderGallery() })
+          div.appendChild(del)
+          div.addEventListener('click', function () { gen.exportPNG(canvas) })
+          galleryGrid.appendChild(div)
+        })(i)
+      }
+    }
+
+    // Events
+    generateBtn.addEventListener('click', function () { currentParams.seed = Math.random() * 1000; generate() })
+    animateBtn.addEventListener('click', toggleAnimate)
+    saveBtn.addEventListener('click', saveImage)
+    exportBtn.addEventListener('click', exportImage)
+    filterBtn.addEventListener('click', function () { filterWrap.style.display = filterWrap.style.display === 'none' ? 'flex' : 'none' })
+    filterApply.addEventListener('click', applyFilter)
+    galleryClear.addEventListener('click', function () { gen.clearGallery(); renderGallery() })
+
+    // Size observer
+    var ro = new ResizeObserver(function () { if (!isAnimating) { canvas.width = canvas.clientWidth * (window.devicePixelRatio || 1); canvas.height = canvas.clientHeight * (window.devicePixelRatio || 1); generate() } })
+    ro.observe(canvas)
+
+    // Tab change listener
+    document.addEventListener('tabChange', function () {
+      var cur = window.getCurrentTab && window.getCurrentTab()
+      if (cur === 5) { renderGallery(); generate() }
+    })
+
+    renderTypeBar()
+    currentParams = gen.getDefaultParams(currentType)
+    renderParams()
+    setTimeout(function () { canvas.width = canvas.clientWidth * (window.devicePixelRatio || 1); canvas.height = canvas.clientHeight * (window.devicePixelRatio || 1); generate() }, 100)
+    renderGallery()
+  }
   window.closeModal = function (id) { var m = document.getElementById(id); if (m) { m.classList.remove('open'); m.style.display = 'none' } }
   window.updateOnlineBadge = function (count) { var el = document.getElementById('onlineCount'); if (el) { var t = LANG[localStorage.getItem('xolerc_lang') || 'uz']; el.textContent = count + ' ' + (t['chat.online'] || 'online') } }
 
@@ -387,6 +546,8 @@
       { fn: initLoadingOverlay, name: 'Loading' }, { fn: initCanvas, name: 'Canvas' },
       { fn: initClock, name: 'Clock' }, { fn: initQuotes, name: 'Quotes' },
       { fn: initTheme, name: 'Theme' }, { fn: initLang, name: 'Lang' },
+      { fn: initGenerator, name: 'Generator' },
+      { fn: initAI, name: 'AI' },
       { fn: initSettings, name: 'Settings' },
       { fn: initCheatsheet, name: 'Cheatsheet' }
     ]
