@@ -370,16 +370,21 @@
 
         <!-- ========== AI ASSISTANT ========== -->
         <div class="tab-content" id="tab-ai">
-          <div class="ai-app">
+            <div class="ai-app">
+            <div class="ai-sidebar-overlay" id="aiSidebarOverlay"></div>
             <div class="ai-sidebar" id="aiSidebar">
               <div class="ai-sidebar-head">
                 <span class="ai-sidebar-title">🤖 Suhbatlar</span>
-                <button class="ai-new-btn" id="aiNewBtn">+</button>
+                <div class="ai-sidebar-head-right">
+                  <button class="ai-new-btn" id="aiNewBtn">+</button>
+                  <button class="ai-sidebar-toggle" id="aiSidebarClose" title="Yopish">✕</button>
+                </div>
               </div>
               <div class="ai-sidebar-list" id="aiSidebarList"></div>
             </div>
             <div class="ai-main">
               <div class="ai-header">
+                <button class="ai-header-btn ai-sidebar-toggle" id="aiMenuBtn" title="Suhbatlar" style="display:none">☰</button>
                 <span class="ai-header-title">XOLERIC AI</span>
                 <div class="ai-header-actions">
                   <button class="ai-header-btn" id="aiSettingsBtn" title="API kalit">🔑</button>

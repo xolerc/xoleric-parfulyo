@@ -368,9 +368,6 @@ button:focus-visible,
   box-shadow: 0 0 6px var(--accent);
 }
 
-  box-shadow: 0 0 4px var(--accent);
-}
-
 /* ============================================================
    TOPBAR
    ============================================================ */
@@ -4078,6 +4075,12 @@ button:focus-visible,
   padding: 12px 14px;
   border-bottom: 1px solid var(--line);
 }
+.ai-sidebar-head-right {
+  display: flex; align-items: center; gap: 4px;
+}
+.ai-sidebar-toggle {
+  display: none;
+}
 .ai-sidebar-title {
   font-size: 12px; font-weight: 600;
   color: var(--text-secondary);
@@ -4395,20 +4398,49 @@ button:focus-visible,
 
 /* AI responsive */
 @media (max-width: 768px) {
-  .ai-sidebar { display: none; }
+  #tab-ai { padding: 0; }
+  .ai-sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 200;
+    width: 260px; max-width: 80vw;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+    border-right: 1px solid var(--line);
+  }
+  .ai-sidebar.open { transform: translateX(0); }
+  .ai-sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 199;
+    background: rgba(0,0,0,0.5);
+  }
+  .ai-sidebar-overlay.open { display: block; }
+    .ai-sidebar-toggle {
+    display: inline-flex;
+    width: 28px; height: 28px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    align-items: center; justify-content: center;
+  }
+  .ai-main { min-height: 0; }
   .ai-messages { padding: 12px; }
   .ai-msg { max-width: 92%; }
   .ai-input-bar { padding: 10px 12px; }
-  .ai-app { height: calc(100dvh - 90px); border-radius: var(--radius); }
+  .ai-app { height: 100%; border-radius: var(--radius); }
 }
 @media (max-width: 480px) {
-  .ai-app { height: 100dvh; border-radius: 0; border-left: none; border-right: none; }
-  .ai-messages { padding: 10px; }
+  #tab-ai { padding: 0; }
+  .ai-app { height: 100%; border-radius: 0; border-left: none; border-right: none; }
+  .ai-messages { padding: 10px; flex: 1; min-height: 0; }
   .ai-input-bar { padding: 8px 10px; }
   .ai-msg { max-width: 95%; }
   .ai-msg-bubble { font-size: 12px; padding: 8px 12px; }
   .ai-empty-icon { font-size: 32px; }
   .ai-empty-title { font-size: 16px; }
+  .ai-main { min-height: 0; }
 }
 
 /* ============================================================

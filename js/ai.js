@@ -167,6 +167,30 @@
     if (btn) btn.addEventListener('click', newConv)
   }
 
+  function setupSidebarToggle() {
+    var menuBtn = $('aiMenuBtn')
+    var sidebar = $('aiSidebar')
+    var overlay = $('aiSidebarOverlay')
+    var closeBtn = $('aiSidebarClose')
+    function toggle() {
+      sidebar.classList.toggle('open')
+      if (overlay) overlay.classList.toggle('open')
+    }
+    if (menuBtn) menuBtn.addEventListener('click', toggle)
+    if (closeBtn) closeBtn.addEventListener('click', toggle)
+    if (overlay) overlay.addEventListener('click', toggle)
+    if (menuBtn && window.innerWidth < 769) menuBtn.style.display = ''
+    window.addEventListener('resize', function () {
+      if (menuBtn) menuBtn.style.display = window.innerWidth < 769 ? '' : 'none'
+      if (window.innerWidth >= 769 && sidebar) sidebar.classList.remove('open')
+      if (overlay) overlay.classList.remove('open')
+    })
+    window.addEventListener('tabChange', function (e) {
+      if (e.detail && e.detail.tab !== 'ai' && sidebar) sidebar.classList.remove('open')
+      if (overlay) overlay.classList.remove('open')
+    })
+  }
+
   function setupSettingsBtn() {
     var btn = $('aiSettingsBtn')
     if (btn) btn.addEventListener('click', function () {
@@ -195,6 +219,7 @@
     setupInput()
     setupNewBtn()
     setupSettingsBtn()
+    setupSidebarToggle()
     // Check if engine loaded
     if (!window.XOLERIC_AI) {
       console.warn('AI: XOLERIC_AI engine not loaded')
