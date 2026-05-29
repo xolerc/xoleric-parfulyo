@@ -208,13 +208,14 @@
 
         <!-- ========== VIDEO PLAYER ========== -->
         <div class="tab-content" id="tab-video">
-          <div class="vp-app">
+          <div class="vp-app" id="vpApp">
             <div class="vp-top">
               <div class="vp-top-left">
                 <span class="vp-logo">▶</span>
                 <span class="vp-title">Video</span>
               </div>
               <div class="vp-top-right">
+                <button class="vp-refresh-btn" id="vpRefreshBtn" title="Yangilash">⟳</button>
                 <input class="vp-search" id="vpSearch" placeholder="Qidirish..." />
               </div>
             </div>
@@ -278,6 +279,25 @@
                   <div class="vp-history-list" id="vpHistoryList"></div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- ===== SHORTS PLAYER ===== -->
+          <div class="shorts-player" id="shortsPlayer" style="display:none">
+            <div class="shorts-topbar">
+              <span class="shorts-logo">Shorts</span>
+              <button class="shorts-close" id="shortsClose">✕</button>
+            </div>
+            <div class="shorts-viewport" id="shortsViewport">
+              <div class="shorts-load" id="shortsLoad">
+                <div class="mini-loader"></div>
+                <span>Shorts yuklanmoqda...</span>
+              </div>
+              <div class="shorts-list" id="shortsList"></div>
+            </div>
+            <div class="shorts-nav">
+              <button class="shorts-nav-btn" id="shortsPrev">▲</button>
+              <button class="shorts-nav-btn" id="shortsNext">▼</button>
             </div>
           </div>
         </div>

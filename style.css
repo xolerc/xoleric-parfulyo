@@ -3280,6 +3280,27 @@ button:focus-visible,
 
 .vp-top-right { display: flex; align-items: center; }
 
+.vp-refresh-btn {
+  width: 32px; height: 32px;
+  border: none; background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.vp-refresh-btn:hover {
+  background: var(--bg1);
+  color: var(--accent);
+}
+.vp-refresh-btn.spinning {
+  animation: vpSpin 0.6s ease;
+  color: var(--accent);
+}
+@keyframes vpSpin { to { transform: rotate(360deg); } }
+
 .vp-search {
   background: var(--bg2);
   border: 1px solid rgba(255,255,255,0.08);
@@ -3861,6 +3882,107 @@ button:focus-visible,
 }
 .vp-card-meta { opacity: 0.7; }
 
+/* ============================================================
+   SHORTS PLAYER (TikTok/YT Shorts style)
+   ============================================================ */
+.shorts-player {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  display: none; flex-direction: column;
+  background: #000;
+  z-index: 20;
+}
+.shorts-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; padding-top: env(safe-area-inset-top, 0);
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 2; flex-shrink: 0;
+}
+.shorts-logo {
+  font-size: 14px; font-weight: 700;
+  color: #fff; letter-spacing: 1px;
+}
+.shorts-close {
+  width: 32px; height: 32px;
+  border: none; background: rgba(255,255,255,0.1);
+  color: #fff; font-size: 16px;
+  cursor: pointer; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.shorts-close:hover { background: rgba(255,255,255,0.2); }
+.shorts-viewport {
+  flex: 1; overflow: hidden;
+  position: relative;
+}
+.shorts-load {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; color: rgba(255,255,255,0.5);
+  font-size: 13px; z-index: 5;
+}
+.shorts-list {
+  height: 100%; overflow-y: hidden;
+  scroll-snap-type: y mandatory;
+}
+.shorts-item {
+  height: 100%; scroll-snap-align: start;
+  display: none; flex-direction: column;
+  position: relative;
+}
+.shorts-item.active { display: flex; }
+.shorts-vid-wrap {
+  flex: 1; position: relative;
+  background: #000;
+}
+.shorts-vid-wrap iframe {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+.shorts-info {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 16px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  pointer-events: none;
+}
+.shorts-title {
+  font-size: 14px; font-weight: 600;
+  color: #fff; margin-bottom: 4px;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.shorts-channel {
+  font-size: 12px; color: rgba(255,255,255,0.6);
+}
+.shorts-nav {
+  position: absolute;
+  right: 12px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 5;
+}
+.shorts-nav-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: none; background: rgba(255,255,255,0.1);
+  color: #fff; font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.shorts-nav-btn:hover { background: rgba(255,255,255,0.2); }
+.shorts-nav-btn:active { transform: scale(0.9); }
+.shorts-empty {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.4);
+  font-size: 14px;
+}
+
 /* responsive */
 @media (max-width: 768px) {
   .vp-app { padding: 0 14px; height: calc(100dvh - 90px); }
@@ -3872,6 +3994,10 @@ button:focus-visible,
   .vp-vol-slider { width: 40px; }
   .vp-speed-btn, .vp-quality-btn { font-size: 10px; width: 26px; }
   .vp-player.mini { width: 200px; bottom: 90px; }
+  .shorts-nav { right: 8px; }
+  .shorts-nav-btn { width: 34px; height: 34px; font-size: 14px; }
+  .shorts-title { font-size: 13px; }
+  .shorts-info { padding: 12px; }
 }
 
 @media (max-width: 480px) {
@@ -3887,4 +4013,9 @@ button:focus-visible,
   .vp-minimize-btn { display: none; }
   .vp-player.mini { width: 160px; bottom: 80px; right: 10px; }
   .vp-qual-menu { right: 10px; }
+  .shorts-nav { right: 4px; gap: 4px; }
+  .shorts-nav-btn { width: 30px; height: 30px; font-size: 12px; }
+  .shorts-info { padding: 8px; }
+  .shorts-title { font-size: 12px; }
+  .shorts-channel { font-size: 11px; }
 }

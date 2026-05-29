@@ -1,7 +1,7 @@
 (function () {
   'use strict'
   var KEY = 'AIzaSyAwpEdIA_5_1aDPoMP0Q_ROE_zTrhoxwKs'
-  var TTL = 6 * 60 * 60 * 1000
+  var TTL = 15 * 60 * 1000
   var ctrl = null, st = null, cat = 'all', playing = null, chanFilter = null
   var ytPlayer = null, manualPause = false, playerReady = false, YT_API_LOADED = false
   var retryTimer = null, pageToken = null, allVideos = [], loadMtx = false
@@ -11,11 +11,12 @@
   var vol = parseInt(localStorage.getItem('vp_vol') || '100', 10)
 
   var CHIPS = [
-    { id: 'all', label: 'Trends', q: '' },
-    { id: 'tech', label: 'Texno', q: 'texnologiya 2026' },
-    { id: 'music', label: 'Musiqa', q: 'musiqa 2026' },
-    { id: 'code', label: 'Kod', q: 'dasturlash 2026' },
-    { id: 'game', label: "O'yin", q: "o'yin 2026" }
+    { id: 'all', label: 'Bosh sahifa', queries: ['kun uz yangiliklar', 'qalampir uz', 'ozodlik radiosi', 'trending global news'] },
+    { id: 'music', label: 'Musiqa', queries: ["o'zbek musiqa 2026", 'global hits 2026', 'uzbek pop music'] },
+    { id: 'tech', label: 'Texno', queries: ['texnologiya 2026'] },
+    { id: 'code', label: 'Kod', queries: ['dasturlash 2026'] },
+    { id: 'game', label: "O'yin", queries: ["o'yin 2026"] },
+    { id: 'shorts', label: 'Shorts', queries: ['#shorts uzbek', '#shorts trending'] }
   ]
 
   function $(s) { return document.getElementById(s) }
@@ -401,8 +402,10 @@
 
   function chips(id) {
     var w = $('vpChips'); if (!w) return
-    w.innerHTML = '<button class="vp-chip' + (id === 'all' && !chanFilter ? ' act' : '') + '" id="vpChipsAll" data-i="all">Trends</button>' +
-      CHIPS.slice(1).map(function (c) { return '<button class="vp-chip' + (c.id === id && !chanFilter ? ' act' : '') + '" data-i="' + c.id + '">' + c.label + '</button>' }).join('')
+    w.innerHTML = CHIPS.map(function (c) {
+      var act = id === c.id && !chanFilter ? ' act' : ''
+      return '<button class="vp-chip' + act + '" data-i="' + c.id + '">' + c.label + '</button>'
+    }).join('')
     w.querySelectorAll('.vp-chip:not([data-chan])').forEach(function (el) {
       el.addEventListener('click', function () {
         var id2 = el.dataset.i
@@ -473,6 +476,23 @@
     return r
   }
 
+  async function fetchMulti(queries) {
+    if (!queries || !queries.length) return []
+    var cacheKey = 'multi_' + queries.join('_').toLowerCase().replace(/[\s_]+/g, '_')
+    var cached = gc(cacheKey)
+    if (cached) return cached
+    var results = [], seen = {}
+    for (var qi = 0; qi < queries.length; qi++) {
+      try {
+        var v = await fetchSearch(queries[qi])
+        for (var vi = 0; vi < v.length; vi++) { if (!seen[v[vi].id]) { seen[v[vi].id] = true; results.push(v[vi]) } }
+      } catch (e) { if (e.message === 'QUOTA_EXCEEDED') throw e }
+    }
+    for (var i = results.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var tmp = results[i]; results[i] = results[j]; results[j] = tmp }
+    sc(cacheKey, results)
+    return results
+  }
+
   async function search(q) {
     return fetchSearch(q)
   }
@@ -481,22 +501,80 @@
     return fetchTrending()
   }
 
+  var shortsMode = false, shortsVideos = [], shortsIdx = 0
+
+  function exitShorts() {
+    shortsMode = false
+    $('shortsPlayer').style.display = 'none'
+    $('vpApp').style.display = 'flex'
+    closeP()
+  }
+
+  function enterShorts(id) {
+    shortsMode = true; shortsVideos = []; shortsIdx = 0
+    $('vpApp').style.display = 'none'
+    var sp = $('shortsPlayer'); sp.style.display = 'flex'
+    var ch = CHIPS[CHIPS.length - 1]
+    var loadEl = $('shortsLoad'), listEl = $('shortsList'), closeBtn = $('shortsClose')
+    show(loadEl); listEl.innerHTML = ''
+    fetchMulti(ch.queries).then(function (v) {
+      hide(loadEl)
+      if (!v || !v.length) { listEl.innerHTML = '<div class="shorts-empty">Shorts topilmadi</div>'; return }
+      shortsVideos = v
+      if (id) { for (var si = 0; si < v.length; si++) { if (v[si].id === id) { shortsIdx = si; break } } }
+      renderShorts()
+    }).catch(function () { hide(loadEl); listEl.innerHTML = '<div class="shorts-empty">Xatolik yuz berdi</div>' })
+    if (closeBtn) closeBtn.onclick = exitShorts
+  }
+
+  function renderShorts() {
+    var listEl = $('shortsList'); if (!listEl) return
+    listEl.innerHTML = shortsVideos.map(function (v, i) {
+      return '<div class="shorts-item' + (i === shortsIdx ? ' active' : '') + '" data-idx="' + i + '">' +
+        '<div class="shorts-vid-wrap"><div class="shorts-iframe" data-id="' + v.id + '"></div></div>' +
+        '<div class="shorts-info"><div class="shorts-title">' + esc(v.title) + '</div>' +
+        '<div class="shorts-channel">' + esc(v.channel) + '</div></div></div>'
+    }).join('')
+    listEl.querySelectorAll('.shorts-item').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var idx = parseInt(el.dataset.idx, 10)
+        if (idx === shortsIdx) return
+        shortsIdx = idx; renderShorts(); loadShortsVideo(shortsIdx)
+      })
+    })
+    loadShortsVideo(shortsIdx)
+  }
+
+  function loadShortsVideo(idx) {
+    var v = shortsVideos[idx]; if (!v) return
+    var wrap = document.querySelector('.shorts-item.active .shorts-iframe')
+    if (!wrap) return
+    wrap.innerHTML = '<iframe src="https://www.youtube.com/embed/' + v.id + '?autoplay=1&rel=0&playsinline=1&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>'
+  }
+
+  function shortsNav(dir) {
+    var next = shortsIdx + dir
+    if (next < 0 || next >= shortsVideos.length) return
+    shortsIdx = next; renderShorts(); loadShortsVideo(shortsIdx)
+  }
+
   async function load(id) {
+    if (id === 'shorts') { enterShorts(); return }
+    exitShorts()
     var loadEl = $('vpLoad'), errEl = $('vpErr'), noneEl = $('vpNone'), descEl = $('vpErrDesc'), moreEl = $('vpLoadMore')
     allVideos = []; pageToken = null; hide(moreEl)
     show(loadEl); hide(errEl); hide(noneEl); renderSkel()
     var ch = null; for (var ci = 0; ci < CHIPS.length; ci++) { if (CHIPS[ci].id === id) { ch = CHIPS[ci]; break } }
     try {
       var v
-      if (id === 'all') v = await trending()
-      else if (ch && ch.q) v = await search(ch.q)
+      if (ch && ch.queries && ch.queries.length > 1) v = await fetchMulti(ch.queries)
+      else if (ch && ch.queries && ch.queries.length === 1) v = await search(ch.queries[0])
       else v = null
       if (v && v.length) { allVideos = v; render(v); if (pageToken) show(moreEl) } else { hide(loadEl); show(noneEl); var g = $('vpGrid'); if (g) g.innerHTML = '' }
     } catch (e) {
       if (e.name === 'AbortError') { hideSkel(); return }
       console.error(e); hide(loadEl)
-      /* Try stale cache on error */
-      var staleKey = id === 'all' ? 'trending_' : (ch ? ch.q : null)
+      var staleKey = id === 'shorts' ? null : (ch ? 'multi_' + ch.queries.join('_').toLowerCase().replace(/[\s_]+/g, '_') : null)
       var stale = staleKey ? gcStale(staleKey) : null
       if (stale && stale.length) { allVideos = stale; render(stale); if (descEl) descEl.textContent = 'Kesh ma\'lumotlari ko\'rsatilmoqda (yangilash imkonsiz)'; return }
       show(errEl)
@@ -507,18 +585,15 @@
   }
 
   async function loadMore() {
-    if (!pageToken || loadMtx) return
+    if (!pageToken || loadMtx || cat === 'shorts') return
     loadMtx = true
     var btn = $('vpLoadMoreBtn')
     if (btn) btn.disabled = true
     try {
-      var newV
-      if (cat === 'all') newV = await fetchTrending(pageToken)
-      else {
-        var ch = null; for (var ci = 0; ci < CHIPS.length; ci++) { if (CHIPS[ci].id === cat) { ch = CHIPS[ci]; break } }
-        if (!ch || !ch.q) { loadMtx = false; if (btn) btn.disabled = false; return }
-        newV = await fetchSearch(ch.q, pageToken)
-      }
+      var newV, ch = null
+      for (var ci = 0; ci < CHIPS.length; ci++) { if (CHIPS[ci].id === cat) { ch = CHIPS[ci]; break } }
+      if (!ch || !ch.queries || !ch.queries.length) { loadMtx = false; if (btn) btn.disabled = false; return }
+      newV = await fetchSearch(ch.queries[0], pageToken)
       if (newV && newV.length) { allVideos = allVideos.concat(newV); render(newV, true) }
       if (!pageToken) $('vpLoadMore').style.display = 'none'
     } catch (e) {
@@ -535,6 +610,7 @@
   function doSearch(q) {
     q = q.trim()
     if (!q) { cat = 'all'; chanFilter = null; chips('all'); load('all'); return }
+    exitShorts()
     if (searchMtx) { if (ctrl) ctrl.abort(); searchMtx = false }
     cat = ''; chanFilter = null; chips(''); renderSkel(); hide($('vpErr')); hide($('vpNone')); hide($('vpLoadMore'))
     searchMtx = true
@@ -703,11 +779,60 @@
     })
   }
 
+  function cacheKeyForCat() {
+    if (cat === 'shorts') return null
+    for (var ci = 0; ci < CHIPS.length; ci++) {
+      if (CHIPS[ci].id === cat && CHIPS[ci].queries) {
+        if (CHIPS[ci].queries.length > 1) return 'multi_' + CHIPS[ci].queries.join('_').toLowerCase().replace(/[\s_]+/g, '_')
+        return 'search_' + CHIPS[ci].queries[0]
+      }
+    }
+    return null
+  }
+  window.refreshVideos = function () {
+    var ck = cacheKeyForCat()
+    if (ck) {
+      ck = 'vp_' + ck.toLowerCase().replace(/[\s_]+/g, '_')
+      var keys = Object.keys(localStorage)
+      for (var i = 0; i < keys.length; i++) { if (keys[i].indexOf(ck) === 0) localStorage.removeItem(keys[i]) }
+    }
+    load(cat)
+  }
+
+  function setupShortsNav() {
+    var up = $('shortsPrev'), down = $('shortsNext')
+    if (up) up.addEventListener('click', function () { shortsNav(-1) })
+    if (down) down.addEventListener('click', function () { shortsNav(1) })
+    var vp = $('shortsViewport')
+    if (vp) {
+      var sy = 0, sd = 0, sDrag = false
+      vp.addEventListener('touchstart', function (e) { sy = e.touches[0].clientY; sDrag = true }, { passive: true })
+      vp.addEventListener('touchmove', function (e) { if (sDrag) sd = e.touches[0].clientY - sy }, { passive: true })
+      vp.addEventListener('touchend', function () {
+        if (!sDrag) return; sDrag = false
+        if (sd < -50) shortsNav(1)
+        else if (sd > 50) shortsNav(-1)
+        sd = 0
+      })
+    }
+    document.addEventListener('keydown', function (e) {
+      if (!shortsMode) return
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+      if (e.key === 'ArrowUp') { e.preventDefault(); shortsNav(-1) }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); shortsNav(1) }
+      else if (e.key === 'Escape') { e.preventDefault(); exitShorts() }
+    })
+  }
+
   window.initYoutube = function () {
     chips('all'); setupSearch(); setupVolume(); setupSpeed(); setupQuality(); setupMinimize()
-    setupKeyboard(); setupHistClear(); renderHist(); setupScrollRefresh()
+    setupKeyboard(); setupHistClear(); renderHist(); setupScrollRefresh(); setupShortsNav()
     var x = $('vpPlayerX'); if (x) x.addEventListener('click', closeP)
     var lm = $('vpLoadMoreBtn'); if (lm) lm.addEventListener('click', loadMore)
+    var rf = $('vpRefreshBtn'); if (rf) rf.addEventListener('click', function () { this.classList.add('spinning'); refreshVideos() })
+    document.addEventListener('tabChange', function (e) {
+      if (e.detail && e.detail.tab === 'video') refreshVideos()
+    })
     load('all')
   }
 })()
