@@ -1,80 +1,22 @@
-# XOLERIC Android Widgets
+# XOLERIC Android App
 
-Native Android App Widgets for the XOLERIC home screen.
+WebView wrapper for xolerc.github.io/xoleric-parfulyo/
 
-## Widgets
+## Build
 
-| Widget | Size | Description |
-|--------|------|-------------|
-| **StatsWidget** | 2×1 | Real-time stats: visits, online users, messages, rooms |
-| **WeatherWidget** | 2×1 | Current weather for Namangan |
-| **MusicWidget** | 2×1 | Mini music player with play/pause control |
-| **ResumeWidget** | 2×1 | Profile card with skill tags |
-
-## Integration
-
-### 1. Add to AndroidManifest.xml
-
-```xml
-<receiver android:name=".StatsWidget"
-    android:exported="true">
-    <intent-filter>
-        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-    </intent-filter>
-    <meta-data android:name="android.appwidget.provider"
-        android:resource="@xml/widget_info_stats" />
-</receiver>
-
-<receiver android:name=".WeatherWidget"
-    android:exported="true">
-    <intent-filter>
-        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-    </intent-filter>
-    <meta-data android:name="android.appwidget.provider"
-        android:resource="@xml/widget_info_weather" />
-</receiver>
-
-<receiver android:name=".MusicWidget"
-    android:exported="true">
-    <intent-filter>
-        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-        <action android:name="com.xoleric.app.action.PLAY_MUSIC" />
-    </intent-filter>
-    <meta-data android:name="android.appwidget.provider"
-        android:resource="@xml/widget_info_music" />
-</receiver>
-
-<receiver android:name=".ResumeWidget"
-    android:exported="true">
-    <intent-filter>
-        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-    </intent-filter>
-    <meta-data android:name="android.appwidget.provider"
-        android:resource="@xml/widget_info_resume" />
-</receiver>
+```bash
+export ANDROID_HOME=/path/to/android/sdk
+./gradlew assembleDebug
 ```
 
-### 2. Data Sync
+APK output: `app/build/outputs/apk/debug/app-debug.apk`
 
-Call static methods from your WebView bridge or background service:
+## Features
 
-```java
-// Stats
-StatsWidget.updateData(context, visits, online, messages, rooms);
-
-// Weather
-WeatherWidget.updateWeather(context, "28°", "☀️", "Quyoshli");
-
-// Music
-MusicWidget.updateState(context, "Song Title", "Playing", true);
-```
-
-### 3. Widget Background
-
-Uses `@drawable/widget_bg` — dark card with 16dp radius and 1px border.
-
-## Build Requirements
-
-- minSdk: 26
-- targetSdk: 34
-- AndroidX AppCompat (for RemoteViews compatibility)
+- Fullscreen WebView (no title bar)
+- JavaScript, DOM Storage enabled
+- Back button = WebView history back
+- Swipe down to refresh
+- Microphone permission for voice messages
+- Dark theme (#0a0e17)
+- Icon from provided image
