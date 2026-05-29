@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="canonical" href="https://xolerc.github.io/xoleric-parfulyo/" />
   <link rel="apple-touch-icon" href="icon.png" />
+  <script>var m=localStorage.getItem('xolerc_mode')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-mode',m)</script>
   <script>
     window.__XOLERIC_CONFIG__ = {
       FIREBASE_URL: 'https://xoleric-9ad1b-default-rtdb.firebaseio.com'
@@ -66,9 +67,14 @@
   <main class="content">
     <header class="topbar">
       <span>XOLERIC <span>∞</span></span>
-      <button class="topbar-music" id="musicToggle" title="Musiqa">
-        <span class="topbar-music-icon"></span>
-      </button>
+      <div class="topbar-actions">
+        <button class="topbar-mode" id="modeToggleQuick" onclick="toggleMode()" title="Rejimni almashtirish">
+          <span class="topbar-mode-icon">🌙</span>
+        </button>
+        <button class="topbar-music" id="musicToggle" title="Musiqa">
+          <span class="topbar-music-icon"></span>
+        </button>
+      </div>
     </header>
 
     <section class="workspace">
@@ -412,12 +418,18 @@
             <h3 data-i18n="settings.theme">Interfeys temasi</h3>
             <p data-i18n="settings.theme.desc">Ilova ko'rinishini o'zingizga moslang</p>
             <div class="theme-scroll" id="themeGrid">
-              <button class="theme-btn active" data-theme="github" title="GitHub Primer"><span class="theme-circle" style="background:#58a6ff"></span><span class="theme-label">GitHub</span></button>
-              <button class="theme-btn" data-theme="material" title="Material You"><span class="theme-circle" style="background:#8ab4f8"></span><span class="theme-label">Material</span></button>
-              <button class="theme-btn" data-theme="apple" title="Apple HIG"><span class="theme-circle" style="background:#0a84ff"></span><span class="theme-label">Apple</span></button>
-              <button class="theme-btn" data-theme="twitter" title="Twitter Dim"><span class="theme-circle" style="background:#1d9bf0">𝕏</span><span class="theme-label">Twitter</span></button>
-              <button class="theme-btn" data-theme="instagram" title="Instagram"><span class="theme-circle" style="background:#0095f6">◆</span><span class="theme-label">Instagram</span></button>
-              <button class="theme-btn" data-theme="chatgpt" title="ChatGPT"><span class="theme-circle" style="background:#19c37d">◆</span><span class="theme-label">ChatGPT</span></button>
+              <button class="theme-btn" data-theme="github" title="GitHub Primer"><span class="theme-circle" style="background:#58a6ff">G</span><span class="theme-label">GitHub</span></button>
+              <button class="theme-btn" data-theme="google" title="Material You"><span class="theme-circle" style="background:#8ab4f8">G+</span><span class="theme-label">Google</span></button>
+              <button class="theme-btn" data-theme="apple" title="Apple HIG"><span class="theme-circle" style="background:#0a84ff">A</span><span class="theme-label">Apple</span></button>
+              <button class="theme-btn" data-theme="twitter" title="Twitter/X"><span class="theme-circle" style="background:#1d9bf0">X</span><span class="theme-label">Twitter</span></button>
+              <button class="theme-btn" data-theme="instagram" title="Instagram"><span class="theme-circle" style="background:#0095f6">Ig</span><span class="theme-label">Instagram</span></button>
+              <button class="theme-btn" data-theme="chatgpt" title="ChatGPT"><span class="theme-circle" style="background:#19c37d">AI</span><span class="theme-label">ChatGPT</span></button>
+            </div>
+            <div class="theme-mode-row">
+              <span class="theme-mode-label">Light / Dark</span>
+              <button class="mode-toggle" id="modeToggle" onclick="toggleMode()" title="Rejimni almashtirish">
+                <span class="mode-toggle-slider"><span class="mode-toggle-knob">☀️</span></span>
+              </button>
             </div>
           </div>
 
