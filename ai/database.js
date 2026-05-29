@@ -153,7 +153,6 @@
           'loyiha': 'projects', 'loyihalar': 'projects', 'proekt': 'projects',
           'sozlama': 'settings', 'sozlamalar': 'settings', 'sozlanma': 'settings',
           'aloqa': 'contact', 'kontakt': 'contact',
-          'kod': 'generator', 'generator': 'generator',
           'ai': 'ai', 'sun\'iy intellekt': 'ai'
         },
         action: 'switchTab' },

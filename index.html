@@ -59,7 +59,7 @@
       <button class="nav-btn" data-tab="video" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.video">Video</span></button>
       <button class="nav-btn" data-tab="playme" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.playme">Pleer</span></button>
       <button class="nav-btn" data-tab="ai" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.ai">AI</span></button>
-      <button class="nav-btn" data-tab="generator" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.generator">Generator</span></button>
+
       <button class="nav-btn" data-tab="projects" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.projects">Loyihalar</span></button>
       <button class="nav-btn" data-tab="settings" role="tab" aria-selected="false"><span class="nav-glow"></span><span data-i18n="nav.settings">Sozlamalar</span></button>
     </nav>
@@ -396,50 +396,6 @@
           </div>
         </div>
 
-        <!-- ========== GENERATOR ========== -->
-        <div class="tab-content" id="tab-generator">
-          <div class="gen-app">
-            <div class="gen-type-bar" id="genTypeBar"></div>
-            <div class="gen-main">
-              <div class="gen-canvas-wrap">
-                <canvas class="gen-canvas" id="genCanvas" width="800" height="450"></canvas>
-                <div class="gen-controls" id="genControls">
-                  <div class="gen-params" id="genParams"></div>
-                  <div class="gen-actions">
-                    <button class="gen-btn gen-btn-primary" id="genGenerateBtn">🎲 Yangi</button>
-                    <button class="gen-btn" id="genAnimateBtn">▶ Animatsiya</button>
-                    <button class="gen-btn" id="genSaveBtn">💾 Saqlash</button>
-                    <button class="gen-btn" id="genExportBtn">📥 Yuklab olish</button>
-                    <button class="gen-btn" id="genFilterBtn">🎨 Filtr</button>
-                    <div class="gen-filter-wrap" id="genFilterWrap" style="display:none">
-                      <select class="gen-select" id="genFilterSelect">
-                        <option value="none">—</option>
-                        <option value="brightness">Yorqinlik</option>
-                        <option value="contrast">Kontrast</option>
-                        <option value="sepia">Sepiya</option>
-                        <option value="invert">Invert</option>
-                        <option value="grayscale">Qora-oq</option>
-                        <option value="saturation">To'yinganlik</option>
-                      </select>
-                      <input class="gen-range" id="genFilterIntensity" type="range" min="0" max="2" step="0.1" value="0.5" />
-                      <button class="gen-btn gen-btn-sm" id="genFilterApply">Qo'llash</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="gen-gallery" id="genGallery">
-                <div class="gen-gallery-head">
-                  <span class="gen-gallery-title">🖼 Galereya</span>
-                  <button class="gen-btn gen-btn-sm" id="genGalleryClear">Tozalash</button>
-                </div>
-                <div class="gen-gallery-grid" id="genGalleryGrid">
-                  <div class="gen-gallery-empty">Hali rasm yo'q</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- ========== PROJECTS ========== -->
         <div class="tab-content" id="tab-projects">
           <div class="page-header">
@@ -603,10 +559,6 @@
         <span class="bn-icon bn-icon-ai" aria-hidden="true"></span>
         <span class="bn-label" data-i18n="bn.ai">AI</span>
       </button>
-      <button class="bn-btn" data-tab="generator" role="tab" aria-selected="false">
-        <span class="bn-icon bn-icon-generator" aria-hidden="true"></span>
-        <span class="bn-label" data-i18n="bn.generator">Generator</span>
-      </button>
       <button class="bn-btn" data-tab="projects" role="tab" aria-selected="false">
         <span class="bn-icon bn-icon-folder" aria-hidden="true"></span>
         <span class="bn-label" data-i18n="bn.projects">Loyihalar</span>
@@ -670,7 +622,7 @@
 <script src="js/chat.js"></script>
 <script src="js/youtube.js"></script>
 <script src="js/repos.js"></script>
-<script src="js/generator.js"></script>
+
 <script src="ai/database.js"></script>
 <script src="ai/engine.js"></script>
 <script src="ai/learn.js"></script>

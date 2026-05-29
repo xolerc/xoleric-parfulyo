@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#0a0e17</color>
+    <color name="primary">#4D7CFF</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">XOLERIC</string>
+    <style name="Theme.Xoleric" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+</resources>

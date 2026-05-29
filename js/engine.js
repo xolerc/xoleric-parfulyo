@@ -1,6 +1,6 @@
 (function () {
   'use strict'
-  var TABS = ['home', 'chat', 'video', 'playme', 'ai', 'generator', 'projects', 'contact', 'settings']
+  var TABS = ['home', 'chat', 'video', 'playme', 'ai', 'projects', 'contact', 'settings']
   var currentTab = 0, tabStack = [0]
 
   function navigateTo(idx, record) {
