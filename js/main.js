@@ -139,101 +139,77 @@
   }
 
   var themes = {
-    midnight: {
-      bg: '#05080f', bg2: '#0a0e1a', bg3: '#070c1a',
-      surface: 'rgba(255,255,255,0.02)', surfaceActive: 'rgba(77,124,255,0.06)',
-      line: 'rgba(255,255,255,0.04)', lineHover: 'rgba(255,255,255,0.08)', lineFocus: 'rgba(77,124,255,0.15)',
-      text: 'rgba(255,255,255,0.88)', text2: 'rgba(255,255,255,0.45)', text3: 'rgba(255,255,255,0.2)', textInverse: '#0a0e1a',
-      accent: '#4d7cff', accent2: '#6366f1',
-      shadow: '0 4px 24px rgba(0,0,0,0.3)', shadowLg: '0 12px 48px rgba(0,0,0,0.5)',
-      glow: '#4d7cff', blur: '12px',
-      glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01))',
-      glassText: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(255,255,255,0.04)',
-      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.07), transparent 85%)'
+    material: {
+      bg: '#1f1f1f', bg2: '#2c2c2c', bg3: '#333333',
+      surface: 'rgba(255,255,255,0.03)', surfaceActive: 'rgba(138,180,248,0.08)',
+      line: 'rgba(255,255,255,0.06)', lineHover: 'rgba(255,255,255,0.12)', lineFocus: 'rgba(138,180,248,0.2)',
+      text: '#e8eaed', text2: '#9aa0a6', text3: 'rgba(255,255,255,0.15)', textInverse: '#1f1f1f',
+      accent: '#8ab4f8', accent2: '#aecbfa',
+      shadow: '0 4px 24px rgba(0,0,0,0.4)', shadowLg: '0 12px 48px rgba(0,0,0,0.6)',
+      glow: '#8ab4f8', blur: '16px',
+      glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))',
+      glassText: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(255,255,255,0.03)',
+      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.06), transparent 85%)'
     },
-    pearl: {
-      bg: '#f8f6f2', bg2: '#fff', bg3: '#fcfaf7',
-      surface: 'rgba(0,0,0,0.02)', surfaceActive: 'rgba(99,102,241,0.08)',
-      line: 'rgba(0,0,0,0.06)', lineHover: 'rgba(0,0,0,0.12)', lineFocus: 'rgba(99,102,241,0.2)',
-      text: '#1a1a1a', text2: '#666', text3: 'rgba(0,0,0,0.25)', textInverse: '#fff',
-      accent: '#6366f1', accent2: '#818cf8',
-      shadow: '0 4px 24px rgba(0,0,0,0.06)', shadowLg: '0 12px 48px rgba(0,0,0,0.1)',
-      glow: '#6366f1', blur: '16px',
-      glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6))',
-      glassText: '#333', glassBorder: 'rgba(0,0,0,0.06)',
-      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.4), transparent 85%)'
+    github: {
+      bg: '#0d1117', bg2: '#161b22', bg3: '#1c2128',
+      surface: 'rgba(255,255,255,0.02)', surfaceActive: 'rgba(88,166,255,0.08)',
+      line: '#30363d', lineHover: '#484f58', lineFocus: 'rgba(88,166,255,0.3)',
+      text: '#c9d1d9', text2: '#8b949e', text3: '#484f58', textInverse: '#0d1117',
+      accent: '#58a6ff', accent2: '#79c0ff',
+      shadow: '0 4px 24px rgba(0,0,0,0.5)', shadowLg: '0 12px 48px rgba(0,0,0,0.7)',
+      glow: '#58a6ff', blur: '12px',
+      glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
+      glassText: '#c9d1d9', glassBorder: '#30363d',
+      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.04), transparent 85%)'
     },
-    matrix: {
-      bg: '#000c00', bg2: '#000a00', bg3: '#001000',
-      surface: 'rgba(0,255,65,0.02)', surfaceActive: 'rgba(0,255,65,0.06)',
-      line: 'rgba(0,255,65,0.06)', lineHover: 'rgba(0,255,65,0.12)', lineFocus: 'rgba(0,255,65,0.2)',
-      text: '#00ff41', text2: '#00aa2a', text3: 'rgba(0,255,65,0.15)', textInverse: '#000',
-      accent: '#00ff41', accent2: '#00cc33',
+    instagram: {
+      bg: '#000000', bg2: '#0a0a0a', bg3: '#111111',
+      surface: 'rgba(255,255,255,0.02)', surfaceActive: 'rgba(0,149,246,0.08)',
+      line: 'rgba(255,255,255,0.04)', lineHover: 'rgba(255,255,255,0.08)', lineFocus: 'rgba(0,149,246,0.2)',
+      text: '#f5f5f5', text2: '#8e8e8e', text3: 'rgba(255,255,255,0.12)', textInverse: '#000000',
+      accent: '#0095f6', accent2: '#38a1f3',
       shadow: '0 4px 24px rgba(0,0,0,0.6)', shadowLg: '0 12px 48px rgba(0,0,0,0.8)',
-      glow: '#00ff41', blur: '8px',
-      glassBg: 'linear-gradient(180deg, rgba(0,255,65,0.06), rgba(0,255,65,0.01))',
-      glassText: 'rgba(0,255,65,0.7)', glassBorder: 'rgba(0,255,65,0.04)',
-      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(0,255,65,0.07), transparent 85%)'
+      glow: '#0095f6', blur: '10px',
+      glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
+      glassText: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(255,255,255,0.03)',
+      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.05), transparent 85%)'
     },
-    aurora: {
-      bg: '#0a0514', bg2: '#0f081a', bg3: '#140a1e',
-      surface: 'rgba(121,40,202,0.03)', surfaceActive: 'rgba(0,212,170,0.06)',
-      line: 'rgba(121,40,202,0.06)', lineHover: 'rgba(0,212,170,0.1)', lineFocus: 'rgba(0,212,170,0.18)',
-      text: '#e8e0f0', text2: '#a088c0', text3: 'rgba(160,136,192,0.2)', textInverse: '#0a0514',
-      accent: '#00d4aa', accent2: '#7928ca',
-      shadow: '0 4px 24px rgba(0,0,0,0.5)', shadowLg: '0 12px 48px rgba(0,0,0,0.7)',
-      glow: '#00d4aa', blur: '14px',
-      glassBg: 'linear-gradient(180deg, rgba(121,40,202,0.06), rgba(0,212,170,0.02))',
-      glassText: 'rgba(200,180,230,0.7)', glassBorder: 'rgba(121,40,202,0.04)',
-      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(0,212,170,0.06), transparent 85%)'
+    twitter: {
+      bg: '#15202b', bg2: '#1e2732', bg3: '#263340',
+      surface: 'rgba(255,255,255,0.02)', surfaceActive: 'rgba(29,155,240,0.08)',
+      line: '#38444d', lineHover: '#4c5a67', lineFocus: 'rgba(29,155,240,0.25)',
+      text: '#f7f9f9', text2: '#8b98a5', text3: '#38444d', textInverse: '#15202b',
+      accent: '#1d9bf0', accent2: '#1a8cd8',
+      shadow: '0 4px 24px rgba(0,0,0,0.4)', shadowLg: '0 12px 48px rgba(0,0,0,0.6)',
+      glow: '#1d9bf0', blur: '14px',
+      glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
+      glassText: 'rgba(255,255,255,0.7)', glassBorder: '#38444d',
+      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.04), transparent 85%)'
     },
-    sunset: {
-      bg: '#0f0805', bg2: '#140a06', bg3: '#1a0c07',
-      surface: 'rgba(255,107,53,0.02)', surfaceActive: 'rgba(247,201,72,0.06)',
-      line: 'rgba(255,107,53,0.06)', lineHover: 'rgba(247,201,72,0.1)', lineFocus: 'rgba(247,201,72,0.18)',
-      text: '#f0e8e0', text2: '#c09070', text3: 'rgba(192,144,112,0.2)', textInverse: '#0f0805',
-      accent: '#ff6b35', accent2: '#f7c948',
-      shadow: '0 4px 24px rgba(0,0,0,0.5)', shadowLg: '0 12px 48px rgba(0,0,0,0.7)',
-      glow: '#ff6b35', blur: '12px',
-      glassBg: 'linear-gradient(180deg, rgba(255,107,53,0.06), rgba(247,201,72,0.02))',
-      glassText: 'rgba(240,200,170,0.7)', glassBorder: 'rgba(255,107,53,0.04)',
-      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(247,201,72,0.06), transparent 85%)'
+    chatgpt: {
+      bg: '#212121', bg2: '#2a2a2a', bg3: '#333333',
+      surface: 'rgba(255,255,255,0.02)', surfaceActive: 'rgba(25,195,125,0.08)',
+      line: 'rgba(255,255,255,0.04)', lineHover: 'rgba(255,255,255,0.08)', lineFocus: 'rgba(25,195,125,0.2)',
+      text: '#ececf1', text2: '#8e8ea0', text3: 'rgba(255,255,255,0.12)', textInverse: '#212121',
+      accent: '#19c37d', accent2: '#10a37f',
+      shadow: '0 4px 24px rgba(0,0,0,0.4)', shadowLg: '0 12px 48px rgba(0,0,0,0.6)',
+      glow: '#19c37d', blur: '16px',
+      glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
+      glassText: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(255,255,255,0.03)',
+      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.04), transparent 85%)'
     },
-    ocean: {
-      bg: '#040e10', bg2: '#061214', bg3: '#081618',
-      surface: 'rgba(13,115,119,0.03)', surfaceActive: 'rgba(20,163,168,0.06)',
-      line: 'rgba(13,115,119,0.06)', lineHover: 'rgba(20,163,168,0.1)', lineFocus: 'rgba(20,163,168,0.18)',
-      text: '#d0ece8', text2: '#60b0b0', text3: 'rgba(96,176,176,0.2)', textInverse: '#040e10',
-      accent: '#14a3a8', accent2: '#0d7377',
-      shadow: '0 4px 24px rgba(0,0,0,0.5)', shadowLg: '0 12px 48px rgba(0,0,0,0.7)',
-      glow: '#14a3a8', blur: '12px',
-      glassBg: 'linear-gradient(180deg, rgba(13,115,119,0.06), rgba(20,163,168,0.02))',
-      glassText: 'rgba(180,220,216,0.7)', glassBorder: 'rgba(13,115,119,0.04)',
-      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(20,163,168,0.06), transparent 85%)'
-    },
-    rose: {
-      bg: '#0e060a', bg2: '#14080d', bg3: '#180a10',
-      surface: 'rgba(232,67,147,0.02)', surfaceActive: 'rgba(253,121,168,0.06)',
-      line: 'rgba(232,67,147,0.05)', lineHover: 'rgba(253,121,168,0.1)', lineFocus: 'rgba(253,121,168,0.18)',
-      text: '#f0e0e8', text2: '#c080a0', text3: 'rgba(192,128,160,0.2)', textInverse: '#0e060a',
-      accent: '#fd79a8', accent2: '#e84393',
-      shadow: '0 4px 24px rgba(0,0,0,0.5)', shadowLg: '0 12px 48px rgba(0,0,0,0.7)',
-      glow: '#fd79a8', blur: '12px',
-      glassBg: 'linear-gradient(180deg, rgba(232,67,147,0.06), rgba(253,121,168,0.02))',
-      glassText: 'rgba(230,200,215,0.7)', glassBorder: 'rgba(232,67,147,0.04)',
-      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(253,121,168,0.06), transparent 85%)'
-    },
-    amber: {
-      bg: '#0c0800', bg2: '#0f0a00', bg3: '#140e00',
-      surface: 'rgba(212,160,23,0.02)', surfaceActive: 'rgba(255,215,0,0.06)',
-      line: 'rgba(212,160,23,0.06)', lineHover: 'rgba(255,215,0,0.1)', lineFocus: 'rgba(255,215,0,0.18)',
-      text: '#e8e0c8', text2: '#b09840', text3: 'rgba(176,152,64,0.2)', textInverse: '#0c0800',
-      accent: '#ffd700', accent2: '#d4a017',
-      shadow: '0 4px 24px rgba(0,0,0,0.5)', shadowLg: '0 12px 48px rgba(0,0,0,0.7)',
-      glow: '#ffd700', blur: '12px',
-      glassBg: 'linear-gradient(180deg, rgba(212,160,23,0.06), rgba(255,215,0,0.02))',
-      glassText: 'rgba(220,210,180,0.7)', glassBorder: 'rgba(212,160,23,0.04)',
-      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,215,0,0.06), transparent 85%)'
+    apple: {
+      bg: '#1c1c1e', bg2: '#2c2c2e', bg3: '#3a3a3c',
+      surface: 'rgba(255,255,255,0.03)', surfaceActive: 'rgba(10,132,255,0.08)',
+      line: '#38383a', lineHover: '#48484a', lineFocus: 'rgba(10,132,255,0.2)',
+      text: '#f5f5f7', text2: '#98989d', text3: '#48484a', textInverse: '#1c1c1e',
+      accent: '#0a84ff', accent2: '#409cff',
+      shadow: '0 4px 24px rgba(0,0,0,0.4)', shadowLg: '0 12px 48px rgba(0,0,0,0.6)',
+      glow: '#0a84ff', blur: '20px',
+      glassBg: 'linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
+      glassText: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(255,255,255,0.06)',
+      glassShimmer: 'linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.08), transparent 85%)'
     }
   }
 
@@ -241,6 +217,7 @@
   window.applyTheme = function (name) {
     var t = themes[name]; if (!t) return
     var r = document.documentElement
+    for (var k in themeKeys) r.style.removeProperty(themeKeys[k])
     r.style.setProperty('--bg', t.bg)
     r.style.setProperty('--bg1', t.bg)
     r.style.setProperty('--bg2', t.bg2)
@@ -273,19 +250,18 @@
     localStorage.setItem('xolerc_theme', name)
     var btns = document.querySelectorAll('.theme-btn')
     for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', btns[i].dataset.theme === name)
-    /* Smooth transition class */
     r.classList.add('theme-transition')
     clearTimeout(r._themeTr)
-    r._themeTr = setTimeout(function () { r.classList.remove('theme-transition') }, 600)
+    r._themeTr = setTimeout(function () { r.classList.remove('theme-transition') }, 300)
   }
 
   function initTheme() {
     document.addEventListener('click', function (e) {
       var btn = e.target.closest ? e.target.closest('.theme-btn') : null
       if (!btn) return
-      window.applyTheme(btn.dataset.theme || 'midnight')
+      window.applyTheme(btn.dataset.theme || 'github')
     })
-    window.applyTheme(localStorage.getItem('xolerc_theme') || 'midnight')
+    window.applyTheme(localStorage.getItem('xolerc_theme') || 'github')
   }
 
   var LANG = {

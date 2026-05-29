@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://xolerc.github.io" />
   <link rel="dns-prefetch" href="https://xoleric-9ad1b-default-rtdb.firebaseio.com" />
   <link rel="dns-prefetch" href="https://api.github.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="manifest" href="pwa-manifest.json" />
   <link rel="stylesheet" href="style.css" />
   <link rel="canonical" href="https://xolerc.github.io/xoleric-parfulyo/" />
@@ -113,13 +113,18 @@
 
         <!-- ========== CHAT (Telegram/WhatsApp style) ========== -->
         <div class="tab-content" id="tab-chat">
-          <div class="chat-block" id="chatContainer">
-            <div class="chat-depth"></div>
-            <div class="chat-loader" id="chatLoader">
-              <div class="chat-loader-ring"></div>
-              <div class="chat-loader-text">Neural Chat</div>
-              <div class="chat-loader-sub">Serverga ulanmoqda...</div>
-            </div>
+            <div class="chat-block" id="chatContainer">
+              <div class="chat-depth"></div>
+              <div class="chat-loader" id="chatLoader">
+                <div class="sk-chat">
+                  <div class="sk-chat-row sk-chat-row-right"><div class="sk-bubble sk-bubble-right"></div></div>
+                  <div class="sk-chat-row"><div class="sk-bubble"></div></div>
+                  <div class="sk-chat-row sk-chat-row-right"><div class="sk-bubble sk-bubble-right sk-bubble-wide"></div></div>
+                  <div class="sk-chat-row"><div class="sk-bubble sk-bubble-wide"></div></div>
+                  <div class="sk-chat-row sk-chat-row-right"><div class="sk-bubble sk-bubble-right"></div></div>
+                  <div class="sk-chat-row"><div class="sk-bubble"></div></div>
+                </div>
+              </div>
 
             <!-- ===== CHAT LIST VIEW (Conversations) ===== -->
             <div class="chat-list-view" id="chatListView">
@@ -348,8 +353,12 @@
             <div class="projects-filters" id="projectsFilters"></div>
           </div>
           <div class="projects-loading" id="projectsLoading">
-            <div class="mini-loader"></div>
-            <span>Yuklanmoqda...</span>
+            <div class="sk-grid">
+              <div class="sk-card"><div class="sk-card-shine"></div></div>
+              <div class="sk-card"><div class="sk-card-shine"></div></div>
+              <div class="sk-card"><div class="sk-card-shine"></div></div>
+              <div class="sk-card"><div class="sk-card-shine"></div></div>
+            </div>
           </div>
           <div class="projects-grid" id="projectsGrid"></div>
         </div>
@@ -403,14 +412,12 @@
             <h3 data-i18n="settings.theme">Interfeys temasi</h3>
             <p data-i18n="settings.theme.desc">Ilova ko'rinishini o'zingizga moslang</p>
             <div class="theme-scroll" id="themeGrid">
-              <button class="theme-btn active" data-theme="midnight" title="Midnight"><span class="theme-circle" style="background:#4d7cff">🌙</span><span class="theme-label">Midnight</span></button>
-              <button class="theme-btn" data-theme="pearl" title="Pearl"><span class="theme-circle" style="background:#6366f1">☀️</span><span class="theme-label">Pearl</span></button>
-              <button class="theme-btn" data-theme="matrix" title="Matrix"><span class="theme-circle" style="background:#00ff41">💚</span><span class="theme-label">Matrix</span></button>
-              <button class="theme-btn" data-theme="aurora" title="Aurora"><span class="theme-circle" style="background:#00d4aa">🌌</span><span class="theme-label">Aurora</span></button>
-              <button class="theme-btn" data-theme="sunset" title="Sunset"><span class="theme-circle" style="background:#ff6b35">🌅</span><span class="theme-label">Sunset</span></button>
-              <button class="theme-btn" data-theme="ocean" title="Ocean"><span class="theme-circle" style="background:#14a3a8">🌊</span><span class="theme-label">Ocean</span></button>
-              <button class="theme-btn" data-theme="rose" title="Rose"><span class="theme-circle" style="background:#fd79a8">🌹</span><span class="theme-label">Rose</span></button>
-              <button class="theme-btn" data-theme="amber" title="Amber"><span class="theme-circle" style="background:#ffd700">✨</span><span class="theme-label">Amber</span></button>
+              <button class="theme-btn active" data-theme="github" title="GitHub Primer"><span class="theme-circle" style="background:#58a6ff"></span><span class="theme-label">GitHub</span></button>
+              <button class="theme-btn" data-theme="material" title="Material You"><span class="theme-circle" style="background:#8ab4f8"></span><span class="theme-label">Material</span></button>
+              <button class="theme-btn" data-theme="apple" title="Apple HIG"><span class="theme-circle" style="background:#0a84ff"></span><span class="theme-label">Apple</span></button>
+              <button class="theme-btn" data-theme="twitter" title="Twitter Dim"><span class="theme-circle" style="background:#1d9bf0">𝕏</span><span class="theme-label">Twitter</span></button>
+              <button class="theme-btn" data-theme="instagram" title="Instagram"><span class="theme-circle" style="background:#0095f6">◆</span><span class="theme-label">Instagram</span></button>
+              <button class="theme-btn" data-theme="chatgpt" title="ChatGPT"><span class="theme-circle" style="background:#19c37d">◆</span><span class="theme-label">ChatGPT</span></button>
             </div>
           </div>
 
